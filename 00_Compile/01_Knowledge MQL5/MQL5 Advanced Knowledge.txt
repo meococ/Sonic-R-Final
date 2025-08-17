@@ -1,0 +1,2545 @@
+# MQL5 Advanced Knowledge - Part 2: Kin Trc Chuyn Nghip v  Debugging Mastery
+
+**Tc gi:** Manus AI  
+**Ng y to:** 5 thng 7, 2025  
+**Phin bn:** 2.0  
+**Mc 'ch:** T i liu chuyn su v MQL5 nng cao cho cc kin trc s phn mm v  nh  pht trin EA chuyn nghip
+
+---
+
+## Mc Lc
+
+1. [Gii Thiu](#gii-thiu)
+2. [Object-Oriented Programming Nng Cao](#object-oriented-programming-nng-cao)
+3. [Kin Trc EA Chuyn Nghip](#kin-trc-ea-chuyn-nghip)
+4. [Design Patterns trong MQL5](#design-patterns-trong-mql5)
+5. [Error Handling v  Logging Framework](#error-handling-v -logging-framework)
+6. [Memory Management v  Performance Optimization](#memory-management-v -performance-optimization)
+7. [Debugging v  Troubleshooting Mastery](#debugging-v -troubleshooting-mastery)
+8. [Compilation Issues v  Solutions](#compilation-issues-v -solutions)
+9. [Advanced Development Practices](#advanced-development-practices)
+10. [Tnh Nng Mi Nht MetaTrader 5](#tnh-nng-mi-nht-metatrader-5)
+11. [Best Practices v  Recommendations](#best-practices-v -recommendations)
+12. [Kt Lun](#kt-lun)
+
+---
+
+## Gii Thiu
+
+Ch o mng 'n vi Part 2 ca series MQL5 Advanced Knowledge. T i liu n y 'c thit k d nh cho cc kin trc s phn mm, senior developers v  nhng ai mu'n master vic xy dng Expert Advisors vi cht lng production-ready. Chng ta s 'i su v o nhng kha cnh phc tp nht ca MQL5, t kin trc h th'ng 'n debugging techniques v  performance optimization.
+
+Trong th gii trading t 'ng, vic xy dng mt EA khng ch 'n thun l  vit code hot 'ng 'c. Mt EA chuyn nghip phi 'm bo tnh - n 'nh, kh nng m rng, d... bo tr v  c th handle 'c mi tnh hu'ng th trng phc tp. iu n y 'i hi kin thc su rng v architecture patterns, memory management, error handling v  debugging techniques.
+
+MQL5 l  mt ngn ng lp trnh mnh m 'c pht trin bi MetaQuotes Software Corp, 'c thit k 'c bit cho vic pht trin trading algorithms trn nn tng MetaTrader 5. Khc vi MQL4, MQL5 h- tr 'y ' Object-Oriented Programming, multi-threading, v  nhiu tnh nng advanced khc gip developers xy dng nhng h th'ng trading phc tp v  hiu qu.
+
+T i liu n y s cung cp cho bn nhng kin thc v  k thut cn thit ' tr th nh mt MQL5 architect chuyn nghip, c kh nng thit k v  implement nhng EA c tnh nng phong ph m  vn 'm bo khng c l-i v  performance t'i u.
+
+
+
+
+## Object-Oriented Programming Nng Cao
+
+### Khi Nim C Bn v  Trit L OOP trong MQL5
+
+Object-Oriented Programming trong MQL5 khng ch 'n thun l  vic s dng classes v  objects. y l  mt paradigm lp trnh mnh m cho php developers to ra nhng h th'ng phc tp vi tnh modular cao, d... bo tr v  c kh nng m rng t't. MQL5 implement 'y ' cc nguyn tc OOP c bn: Encapsulation, Inheritance, Polymorphism v  Abstraction.
+
+Trong trading systems, OOP 'c bit quan trng v n cho php chng ta model cc entities thc t nh Orders, Positions, Indicators, Risk Management modules th nh cc objects ring bit vi behaviors v  properties r r ng. iu n y khng ch l m cho code d... hiu hn m  cn gip ti s dng code hiu qu v  gim thiu bugs.
+
+### Classes v  Objects: Foundation ca MQL5 Architecture
+
+Trong MQL5, mt class 'c 'nh ngha bng keyword `class` v  c th cha member variables (properties) v  member functions (methods). Khc vi C++, MQL5 c mt s' 'c 'im ring bit trong cch handle objects v  memory management.
+
+```cpp
+// V d v mt class c bn trong MQL5
+class CTradeManager
+{
+private:
+    double m_riskPercent;           // Risk percentage per trade
+    int m_magicNumber;              // Magic number for identification
+    string m_symbol;                // Trading symbol
+    
+protected:
+    bool ValidateParameters();       // Protected method for validation
+    
+public:
+    // Constructor
+    CTradeManager(string symbol, double risk, int magic);
+    
+    // Destructor
+    ~CTradeManager();
+    
+    // Public interface methods
+    bool OpenBuyOrder(double lots, double sl, double tp);
+    bool OpenSellOrder(double lots, double sl, double tp);
+    bool ClosePosition(ulong ticket);
+    
+    // Getter v  Setter methods
+    void SetRiskPercent(double risk) { m_riskPercent = risk; }
+    double GetRiskPercent() const { return m_riskPercent; }
+};
+
+// Implementation ca constructor
+CTradeManager::CTradeManager(string symbol, double risk, int magic)
+{
+    m_symbol = symbol;
+    m_riskPercent = risk;
+    m_magicNumber = magic;
+    
+    // Validation logic
+    if(!ValidateParameters())
+    {
+        Print("ERROR: Invalid parameters in CTradeManager constructor");
+    }
+}
+
+// Implementation ca destructor
+CTradeManager::~CTradeManager()
+{
+    // Cleanup resources if needed
+    Print("CTradeManager destroyed for symbol: ", m_symbol);
+}
+```
+
+**Lu  quan trng v Object Syntax trong MQL5:**
+Mt trong nhng 'im khc bit quan trng nht gia MQL5 v  C++ l  cch handle objects. MQL5 khng support pointer syntax (`->`) cho objects. Thay v o ', chng ta phi s dng dot notation (`.`) ngay c khi l m vic vi object pointers.
+
+```cpp
+//  INCORRECT - MQL5 khng support pointer syntax
+CTradeManager* pManager = new CTradeManager("EURUSD", 2.0, 12345);
+pManager->OpenBuyOrder(0.1, 1.1000, 1.1100);  // Compilation error!
+
+// ... CORRECT - S dng dot notation
+CTradeManager* pManager = new CTradeManager("EURUSD", 2.0, 12345);
+pManager.OpenBuyOrder(0.1, 1.1000, 1.1100);   // Correct syntax
+```
+
+### Inheritance: Xy Dng Hierarchy Phc Tp
+
+Inheritance trong MQL5 cho php chng ta to ra cc class hierarchies phc tp, gip ti s dng code v  to ra nhng abstractions mnh m. MQL5 support single inheritance, ngha l  mt class ch c th inherit t mt base class.
+
+```cpp
+// Base class cho tt c trading strategies
+class CBaseStrategy
+{
+protected:
+    string m_strategyName;
+    double m_riskPercent;
+    int m_magicNumber;
+    bool m_isActive;
+    
+    // Protected methods c th 'c override
+    virtual bool ValidateMarketConditions();
+    virtual double CalculatePositionSize();
+    
+public:
+    CBaseStrategy(string name, double risk, int magic);
+    virtual ~CBaseStrategy();
+    
+    // Pure virtual methods - phi 'c implement trong derived classes
+    virtual bool GenerateSignal() = 0;
+    virtual bool ExecuteTrade() = 0;
+    
+    // Common interface methods
+    void SetActive(bool active) { m_isActive = active; }
+    bool IsActive() const { return m_isActive; }
+    string GetStrategyName() const { return m_strategyName; }
+};
+
+// Derived class cho Moving Average strategy
+class CMovingAverageStrategy : public CBaseStrategy
+{
+private:
+    int m_fastPeriod;
+    int m_slowPeriod;
+    int m_fastHandle;
+    int m_slowHandle;
+    double m_fastMA[];
+    double m_slowMA[];
+    
+public:
+    CMovingAverageStrategy(string name, double risk, int magic, 
+                          int fastPeriod, int slowPeriod);
+    ~CMovingAverageStrategy();
+    
+    // Override virtual methods t base class
+    virtual bool GenerateSignal() override;
+    virtual bool ExecuteTrade() override;
+    virtual bool ValidateMarketConditions() override;
+    
+    // Specific methods cho MA strategy
+    bool InitializeIndicators();
+    void UpdateIndicatorValues();
+};
+
+// Implementation ca derived class
+CMovingAverageStrategy::CMovingAverageStrategy(string name, double risk, int magic,
+                                              int fastPeriod, int slowPeriod)
+    : CBaseStrategy(name, risk, magic)  // Call base constructor
+{
+    m_fastPeriod = fastPeriod;
+    m_slowPeriod = slowPeriod;
+    
+    if(!InitializeIndicators())
+    {
+        Print("ERROR: Failed to initialize indicators for ", m_strategyName);
+    }
+}
+
+bool CMovingAverageStrategy::GenerateSignal()
+{
+    if(!ValidateMarketConditions())
+        return false;
+        
+    UpdateIndicatorValues();
+    
+    // Simple MA crossover logic
+    if(m_fastMA[0] > m_slowMA[0] && m_fastMA[1] <= m_slowMA[1])
+    {
+        // Bullish crossover
+        return true;
+    }
+    else if(m_fastMA[0] < m_slowMA[0] && m_fastMA[1] >= m_slowMA[1])
+    {
+        // Bearish crossover
+        return true;
+    }
+    
+    return false;
+}
+```
+
+### Virtual Functions v  Polymorphism
+
+Virtual functions l  mt trong nhng tnh nng mnh m nht ca OOP trong MQL5. Chng cho php implement polymorphism, gip chng ta vit code generic c th l m vic vi nhiu types khc nhau thng qua common interface.
+
+```cpp
+// V d v polymorphism vi virtual functions
+class CStrategyManager
+{
+private:
+    CBaseStrategy* m_strategies[];  // Array of strategy pointers
+    int m_strategyCount;
+    
+public:
+    CStrategyManager();
+    ~CStrategyManager();
+    
+    bool AddStrategy(CBaseStrategy* strategy);
+    void RemoveStrategy(int index);
+    void ExecuteAllStrategies();
+    void PrintStrategyStatus();
+};
+
+void CStrategyManager::ExecuteAllStrategies()
+{
+    for(int i = 0; i < m_strategyCount; i++)
+    {
+        if(m_strategies[i] != NULL && m_strategies[i].IsActive())
+        {
+            // Polymorphic call - s gi correct implementation
+            // da trn actual type ca object
+            if(m_strategies[i].GenerateSignal())
+            {
+                m_strategies[i].ExecuteTrade();
+            }
+        }
+    }
+}
+
+// Usage example
+void OnInit()
+{
+    CStrategyManager* manager = new CStrategyManager();
+    
+    // Add different types of strategies
+    CMovingAverageStrategy* maStrategy = 
+        new CMovingAverageStrategy("MA_Cross", 2.0, 1001, 10, 20);
+    CBollingerBandStrategy* bbStrategy = 
+        new CBollingerBandStrategy("BB_Bounce", 1.5, 1002, 20, 2.0);
+    
+    manager.AddStrategy(maStrategy);
+    manager.AddStrategy(bbStrategy);
+    
+    // Polymorphic execution - m-i strategy s execute theo logic ring
+    manager.ExecuteAllStrategies();
+}
+```
+
+### Advanced OOP Concepts: Abstract Classes v  Interfaces
+
+Mc d MQL5 khng c keyword `interface` nh C# hay Java, chng ta c th to ra interface-like behavior bng cch s dng abstract classes vi pure virtual functions.
+
+```cpp
+// Interface-like abstract class cho Risk Management
+class IRiskManager
+{
+public:
+    // Pure virtual functions - phi 'c implement
+    virtual double CalculatePositionSize(double accountBalance, 
+                                       double riskPercent, 
+                                       double stopLossPoints) = 0;
+    virtual bool ValidateRisk(double positionSize, 
+                            double accountBalance) = 0;
+    virtual double GetMaxDrawdownPercent() = 0;
+    
+    // Virtual destructor
+    virtual ~IRiskManager() {}
+};
+
+// Concrete implementation cho Fixed Fractional Risk Management
+class CFixedFractionalRisk : public IRiskManager
+{
+private:
+    double m_maxRiskPercent;
+    double m_maxDrawdownPercent;
+    
+public:
+    CFixedFractionalRisk(double maxRisk, double maxDrawdown);
+    
+    virtual double CalculatePositionSize(double accountBalance, 
+                                       double riskPercent, 
+                                       double stopLossPoints) override;
+    virtual bool ValidateRisk(double positionSize, 
+                            double accountBalance) override;
+    virtual double GetMaxDrawdownPercent() override;
+};
+
+// Implementation
+double CFixedFractionalRisk::CalculatePositionSize(double accountBalance, 
+                                                  double riskPercent, 
+                                                  double stopLossPoints)
+{
+    if(stopLossPoints <= 0 || accountBalance <= 0)
+        return 0.0;
+        
+    double riskAmount = accountBalance * (riskPercent / 100.0);
+    double tickValue = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+    double positionSize = riskAmount / (stopLossPoints * tickValue);
+    
+    // Apply risk validation
+    if(!ValidateRisk(positionSize, accountBalance))
+        return 0.0;
+        
+    return NormalizeDouble(positionSize, 2);
+}
+```
+
+### Composition vs Inheritance: Khi N o S Dng G
+
+Trong thit k EA, chng ta thng phi quyt 'nh gia composition v  inheritance. Nguyn tc chung l  "favor composition over inheritance" - u tin composition khi c th.
+
+```cpp
+// V d v Composition approach
+class CAdvancedEA
+{
+private:
+    // Composition - EA "has-a" relationship vi cc components
+    CTradeManager* m_tradeManager;
+    IRiskManager* m_riskManager;
+    CSignalGenerator* m_signalGenerator;
+    CLogger* m_logger;
+    
+public:
+    CAdvancedEA(string symbol);
+    ~CAdvancedEA();
+    
+    bool Initialize();
+    void ProcessTick();
+    void Shutdown();
+    
+private:
+    bool SetupComponents();
+    void CleanupComponents();
+};
+
+// Implementation
+CAdvancedEA::CAdvancedEA(string symbol)
+{
+    // Initialize components through composition
+    m_tradeManager = new CTradeManager(symbol, 2.0, 12345);
+    m_riskManager = new CFixedFractionalRisk(2.0, 20.0);
+    m_signalGenerator = new CMovingAverageSignal(10, 20);
+    m_logger = new CFileLogger("EA_Log.txt");
+}
+
+void CAdvancedEA::ProcessTick()
+{
+    if(m_signalGenerator.HasNewSignal())
+    {
+        double positionSize = m_riskManager.CalculatePositionSize(
+            AccountInfoDouble(ACCOUNT_BALANCE), 2.0, 50);
+            
+        if(positionSize > 0)
+        {
+            bool result = m_tradeManager.OpenPosition(positionSize);
+            m_logger.LogInfo("Trade executed: " + (string)result);
+        }
+    }
+}
+```
+
+Composition approach n y c nhiu u 'im:
+- Flexibility cao hn - c th swap components d... d ng
+- Loose coupling gia cc components
+- Easier testing - c th mock individual components
+- Better separation of concerns
+
+### Memory Management trong OOP Context
+
+Mt trong nhng challenges ln nht khi l m vic vi OOP trong MQL5 l  memory management. MQL5 khng c garbage collector nh Java hay C#, v vy chng ta phi manually manage memory.
+
+```cpp
+// Best practices cho memory management
+class CResourceManager
+{
+private:
+    CTradeManager* m_tradeManager;
+    CIndicator* m_indicators[];
+    int m_indicatorCount;
+    
+public:
+    CResourceManager();
+    ~CResourceManager();  // Destructor quan trng cho cleanup
+    
+    bool AddIndicator(CIndicator* indicator);
+    void CleanupResources();
+};
+
+// Proper destructor implementation
+CResourceManager::~CResourceManager()
+{
+    CleanupResources();
+}
+
+void CResourceManager::CleanupResources()
+{
+    // Cleanup trade manager
+    if(m_tradeManager != NULL)
+    {
+        delete m_tradeManager;
+        m_tradeManager = NULL;
+    }
+    
+    // Cleanup indicators array
+    for(int i = 0; i < m_indicatorCount; i++)
+    {
+        if(m_indicators[i] != NULL)
+        {
+            delete m_indicators[i];
+            m_indicators[i] = NULL;
+        }
+    }
+    
+    ArrayFree(m_indicators);
+    m_indicatorCount = 0;
+}
+
+// RAII pattern implementation (MQL5 compatible)
+class CSmartPointer
+{
+private:
+    CBaseStrategy* m_ptr;
+    
+public:
+    CSmartPointer(CBaseStrategy* ptr) : m_ptr(ptr) {}
+    
+    ~CSmartPointer()
+    {
+        if(m_ptr != NULL)
+        {
+            delete m_ptr;
+            m_ptr = NULL;
+        }
+    }
+    
+    // MQL5 compatible getter methods (no operator overloading)
+    CBaseStrategy* Get() { return m_ptr; }
+    CBaseStrategy* GetPtr() const { return m_ptr; }
+    bool IsValid() const { return m_ptr != NULL; }
+    
+    // Prevent copying (comment-based since MQL5 doesn't support = delete)
+    // CSmartPointer(const CSmartPointer&); // Do not implement
+    // CSmartPointer& operator=(const CSmartPointer&); // Do not implement
+};
+```
+
+### Template-like Behavior v  Generic Programming
+
+Mc d MQL5 khng support templates nh C++, chng ta c th achieve generic behavior thng qua inheritance v  virtual functions.
+
+```cpp
+// Generic base class cho different data types
+class CDataProcessor
+{
+public:
+    virtual void ProcessData(void* data, int size) = 0;
+    virtual string GetDataType() = 0;
+    virtual ~CDataProcessor() {}
+};
+
+// Specialized processors
+class CPriceDataProcessor : public CDataProcessor
+{
+public:
+    virtual void ProcessData(void* data, int size) override
+    {
+        double* prices = (double*)data;
+        int count = size / sizeof(double);
+        
+        for(int i = 0; i < count; i++)
+        {
+            // Process price data
+            ProcessPrice(prices[i]);
+        }
+    }
+    
+    virtual string GetDataType() override { return "PriceData"; }
+    
+private:
+    void ProcessPrice(double price);
+};
+
+class CVolumeDataProcessor : public CDataProcessor
+{
+public:
+    virtual void ProcessData(void* data, int size) override
+    {
+        long* volumes = (long*)data;
+        int count = size / sizeof(long);
+        
+        for(int i = 0; i < count; i++)
+        {
+            // Process volume data
+            ProcessVolume(volumes[i]);
+        }
+    }
+    
+    virtual string GetDataType() override { return "VolumeData"; }
+    
+private:
+    void ProcessVolume(long volume);
+};
+```
+
+Object-Oriented Programming trong MQL5 l  foundation cho vic xy dng nhng EA phc tp v  maintainable. Vic hiu su v OOP concepts v  apply chng 'ng cch s gip bn to ra nhng trading systems c cht lng professional vi kh nng m rng v  bo tr t't.
+
+
+## Debugging v  Troubleshooting Mastery
+
+### T- ng Quan v Debugging trong MQL5
+
+Debugging l  mt trong nhng k nng quan trng nht m  mt MQL5 developer cn master. Khc vi nhiu ngn ng lp trnh khc, MQL5 c nhng 'c th ring trong vic debugging do tnh cht real-time ca trading environment v  nhng limitations ca MetaEditor. Hiu r v debugging techniques v  tools available s gip bn identify v  fix issues nhanh chng, '"ng thi improve code quality significantly.
+
+Debugging trong MQL5 khng ch 'n thun l  tm v  sa bugs. y l  mt process comprehensive bao g"m code analysis, performance profiling, memory leak detection, v  validation ca trading logic under different market conditions. Mt professional MQL5 developer phi c kh nng debug khng ch syntax errors m  cn c logic errors, performance bottlenecks, v  nhng issues phc tp lin quan 'n market data v  broker-specific behaviors.
+
+### MetaEditor Debugging Tools: Deep Dive
+
+MetaEditor cung cp mt built-in debugger kh powerful, mc d khng sophisticated nh IDEs khc. Hiu r cch s dng debugger effectively l  key ' troubleshoot complex issues.
+
+#### Compilation v  Error Detection
+
+Compilation l  first line of defense trong debugging process. MetaEditor compiler khng ch detect syntax errors m  cn provide warnings v potential issues.
+
+```cpp
+// V d v common compilation errors v  cch fix
+
+//  COMMON ERROR 1: Pointer vs Object Syntax Confusion
+class CLogger
+{
+public:
+    void LogInfo(string message);
+};
+
+void OnTick()
+{
+    CLogger* logger = new CLogger();
+    
+    //  INCORRECT - MQL5 khng support pointer syntax
+    logger->LogInfo("Tick received");  // Compilation error!
+    
+    // ... CORRECT - S dng dot notation
+    logger.LogInfo("Tick received");   // Correct syntax
+    
+    delete logger;
+}
+
+//  COMMON ERROR 2: Memory Management Issues
+void BadMemoryExample()
+{
+    CLogger* logger = new CLogger();
+    // Missing delete - memory leak!
+    
+    CLogger* logger2 = new CLogger();
+    delete logger2;
+    delete logger2;  // Double deletion - crash!
+}
+
+// ... CORRECT Memory Management
+void GoodMemoryExample()
+{
+    CLogger* logger = new CLogger();
+    
+    // Use the logger...
+    logger.LogInfo("Processing...");
+    
+    // Proper cleanup
+    if(logger != NULL)
+    {
+        delete logger;
+        logger = NULL;  // Prevent accidental reuse
+    }
+}
+
+//  COMMON ERROR 3: Deprecated Functions
+void DeprecatedExample()
+{
+    //  DEPRECATED - S b remove trong future versions
+    double freeMargin = AccountFreeMargin();  // Old style
+    
+    // ... CURRENT - New account information functions
+    double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+}
+```
+
+#### Breakpoints v  Step-by-Step Debugging
+
+Breakpoints l  essential tool cho detailed code analysis. MetaEditor cho php set breakpoints v  execute code step-by-step.
+
+```cpp
+// V d v effective breakpoint usage
+class CAdvancedEA
+{
+private:
+    double m_lastPrice;
+    int m_signalCount;
+    bool m_isTrading;
+    
+public:
+    void ProcessTick();
+    bool AnalyzeMarket();
+    bool ExecuteTrade(int signal);
+};
+
+void CAdvancedEA::ProcessTick()
+{
+    // Set breakpoint here ' examine initial state
+    double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+    
+    // Breakpoint ' check price change logic
+    if(MathAbs(currentPrice - m_lastPrice) > Point * 10)
+    {
+        // Set breakpoint ' analyze market conditions
+        bool hasSignal = AnalyzeMarket();
+        
+        if(hasSignal && m_isTrading)
+        {
+            // Breakpoint ' examine trade execution
+            bool result = ExecuteTrade(1);
+            
+            // Breakpoint ' check result handling
+            if(!result)
+            {
+                Print("Trade execution failed");
+                // Debug why trade failed
+            }
+        }
+    }
+    
+    m_lastPrice = currentPrice;
+}
+
+// Debug helper function
+void DebugPrintState()
+{
+    Print("=== DEBUG STATE ===");
+    Print("Last Price: ", m_lastPrice);
+    Print("Signal Count: ", m_signalCount);
+    Print("Is Trading: ", m_isTrading);
+    Print("Account Balance: ", AccountInfoDouble(ACCOUNT_BALANCE));
+    Print("Free Margin: ", AccountInfoDouble(ACCOUNT_MARGIN_FREE));
+    Print("==================");
+}
+```
+
+#### Variable Watching v  Expression Evaluation
+
+Debugger cho php watch variables v  evaluate expressions real-time, gip understand program state ti mi thi 'im.
+
+```cpp
+// Debugging complex calculations
+double CalculatePositionSize(double riskPercent, double stopLossPoints)
+{
+    // Variables ' watch trong debugger
+    double accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+    double riskAmount = accountBalance * (riskPercent / 100.0);
+    double tickValue = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+    double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+    
+    // Watch expression: riskAmount / (stopLossPoints * tickValue)
+    double rawPositionSize = riskAmount / (stopLossPoints * tickValue);
+    
+    // Watch constraints
+    double minLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+    double maxLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
+    double lotStep = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
+    
+    // Normalize position size
+    double normalizedSize = MathFloor(rawPositionSize / lotStep) * lotStep;
+    
+    // Final validation - watch this expression
+    double finalSize = MathMax(minLot, MathMin(maxLot, normalizedSize));
+    
+    return finalSize;
+}
+```
+
+### Advanced Debugging Techniques
+
+#### Custom Logging Framework
+
+V MetaEditor debugger c limitations, vic implement mt custom logging framework l  essential cho complex EAs.
+
+```cpp
+// Advanced logging framework
+enum ENUM_LOG_LEVEL
+{
+    LOG_LEVEL_DEBUG = 0,
+    LOG_LEVEL_INFO = 1,
+    LOG_LEVEL_WARNING = 2,
+    LOG_LEVEL_ERROR = 3,
+    LOG_LEVEL_CRITICAL = 4
+};
+
+class CAdvancedLogger
+{
+private:
+    string m_logFile;
+    ENUM_LOG_LEVEL m_minLevel;
+    bool m_enableConsole;
+    bool m_enableFile;
+    int m_fileHandle;
+    
+public:
+    CAdvancedLogger(string filename, ENUM_LOG_LEVEL minLevel = LOG_LEVEL_INFO);
+    ~CAdvancedLogger();
+    
+    void LogDebug(string message, string function = __FUNCTION__, int line = __LINE__);
+    void LogInfo(string message, string function = __FUNCTION__, int line = __LINE__);
+    void LogWarning(string message, string function = __FUNCTION__, int line = __LINE__);
+    void LogError(string message, string function = __FUNCTION__, int line = __LINE__);
+    void LogCritical(string message, string function = __FUNCTION__, int line = __LINE__);
+    
+    void LogTradeOperation(string operation, double price, double volume, string result);
+    void LogPerformanceMetrics(string function, ulong executionTime);
+    
+private:
+    void WriteLog(ENUM_LOG_LEVEL level, string message, string function, int line);
+    string GetLevelString(ENUM_LOG_LEVEL level);
+    string GetTimestamp();
+};
+
+// Implementation
+CAdvancedLogger::CAdvancedLogger(string filename, ENUM_LOG_LEVEL minLevel)
+{
+    m_logFile = filename;
+    m_minLevel = minLevel;
+    m_enableConsole = true;
+    m_enableFile = true;
+    
+    // Open log file (improved with FILE_SHARE_READ for concurrent access)
+    m_fileHandle = FileOpen(m_logFile, FILE_WRITE | FILE_READ | FILE_TXT | FILE_ANSI | FILE_SHARE_READ);
+    if(m_fileHandle == INVALID_HANDLE)
+    {
+        Print("ERROR: Cannot open log file: ", m_logFile);
+        m_enableFile = false;
+    }
+    else
+    {
+        FileWrite(m_fileHandle, "=== LOG SESSION STARTED ===");
+        FileWrite(m_fileHandle, "Timestamp: ", GetTimestamp());
+        FileWrite(m_fileHandle, "EA: ", MQLInfoString(MQL_PROGRAM_NAME));
+        FileWrite(m_fileHandle, "================================");
+        FileFlush(m_fileHandle); // Ensure data is written immediately
+    }
+}
+
+void CAdvancedLogger::LogTradeOperation(string operation, double price, double volume, string result)
+{
+    string message = StringFormat("TRADE: %s | Price: %.5f | Volume: %.2f | Result: %s | Balance: %.2f",
+                                 operation, price, volume, result, AccountInfoDouble(ACCOUNT_BALANCE));
+    WriteLog(LOG_LEVEL_INFO, message, __FUNCTION__, __LINE__);
+}
+
+void CAdvancedLogger::LogPerformanceMetrics(string function, ulong executionTime)
+{
+    string message = StringFormat("PERFORMANCE: %s executed in %d microseconds", function, executionTime);
+    WriteLog(LOG_LEVEL_DEBUG, message, __FUNCTION__, __LINE__);
+}
+
+// Usage example vi performance monitoring
+class CPerformanceMonitor
+{
+private:
+    CAdvancedLogger* m_logger;
+    ulong m_startTime;
+    
+public:
+    CPerformanceMonitor(CAdvancedLogger* logger, string functionName)
+    {
+        m_logger = logger;
+        m_startTime = GetMicrosecondCount();
+        m_logger.LogDebug("Function started: " + functionName);
+    }
+    
+    ~CPerformanceMonitor()
+    {
+        ulong executionTime = GetMicrosecondCount() - m_startTime;
+        m_logger.LogPerformanceMetrics("Function", executionTime);
+    }
+};
+
+// Macro ' easy performance monitoring
+#define PERFORMANCE_MONITOR(logger) CPerformanceMonitor __pm(logger, __FUNCTION__)
+
+// Usage
+void SomeExpensiveFunction()
+{
+    PERFORMANCE_MONITOR(g_logger);  // Automatically monitor performance
+    
+    // Function implementation...
+    for(int i = 0; i < 10000; i++)
+    {
+        // Some heavy computation
+    }
+}
+```
+
+#### Memory Leak Detection
+
+Memory leaks l  mt trong nhng issues kh detect nht trong MQL5. y l  framework ' monitor memory usage.
+
+```cpp
+// Memory monitoring framework
+class CMemoryMonitor
+{
+private:
+    struct SMemoryAllocation
+    {
+        void* pointer;
+        int size;
+        string location;
+        datetime timestamp;
+    };
+    
+    SMemoryAllocation m_allocations[];
+    int m_allocationCount;
+    long m_totalAllocated;
+    long m_peakUsage;
+    
+public:
+    CMemoryMonitor();
+    ~CMemoryMonitor();
+    
+    void RegisterAllocation(void* ptr, int size, string location);
+    void RegisterDeallocation(void* ptr);
+    void PrintMemoryReport();
+    bool HasMemoryLeaks();
+    
+private:
+    int FindAllocation(void* ptr);
+};
+
+// Memory tracking macros
+#define TRACKED_NEW(type, size) \
+    ({ \
+        type* ptr = new type(); \
+        g_memoryMonitor.RegisterAllocation(ptr, size, __FILE__ + ":" + (string)__LINE__); \
+        ptr; \
+    })
+
+#define TRACKED_DELETE(ptr) \
+    ({ \
+        g_memoryMonitor.RegisterDeallocation(ptr); \
+        delete ptr; \
+        ptr = NULL; \
+    })
+
+// Global memory monitor instance
+CMemoryMonitor g_memoryMonitor;
+
+// Usage example
+void TestMemoryTracking()
+{
+    // Tracked allocation
+    CTradeManager* manager = TRACKED_NEW(CTradeManager, sizeof(CTradeManager));
+    
+    // Use the object...
+    manager.OpenBuyOrder(0.1, 1.1000, 1.1100);
+    
+    // Tracked deallocation
+    TRACKED_DELETE(manager);
+    
+    // Check for leaks
+    if(g_memoryMonitor.HasMemoryLeaks())
+    {
+        Print("WARNING: Memory leaks detected!");
+        g_memoryMonitor.PrintMemoryReport();
+    }
+}
+```
+
+### Profiling v  Performance Analysis
+
+MetaEditor cung cp built-in profiler, nhng chng ta c th enhance n vi custom profiling tools.
+
+```cpp
+// Custom profiler cho detailed performance analysis
+class CCustomProfiler
+{
+private:
+    struct SProfileData
+    {
+        string functionName;
+        ulong totalTime;
+        int callCount;
+        ulong minTime;
+        ulong maxTime;
+        double averageTime;
+    };
+    
+    SProfileData m_profiles[];
+    int m_profileCount;
+    
+public:
+    CCustomProfiler();
+    ~CCustomProfiler();
+    
+    void StartProfiling(string functionName);
+    void EndProfiling(string functionName);
+    void PrintProfilingReport();
+    void ResetProfiles();
+    
+private:
+    int FindProfile(string functionName);
+    void UpdateProfile(int index, ulong executionTime);
+};
+
+// Profiling helper class
+class CProfileScope
+{
+private:
+    string m_functionName;
+    ulong m_startTime;
+    CCustomProfiler* m_profiler;
+    
+public:
+    CProfileScope(CCustomProfiler* profiler, string functionName)
+    {
+        m_profiler = profiler;
+        m_functionName = functionName;
+        m_startTime = GetMicrosecondCount();
+        m_profiler.StartProfiling(m_functionName);
+    }
+    
+    ~CProfileScope()
+    {
+        m_profiler.EndProfiling(m_functionName);
+    }
+};
+
+// Macro ' easy profiling
+#define PROFILE_SCOPE(profiler) CProfileScope __ps(profiler, __FUNCTION__)
+
+// Usage example
+void OptimizeThisFunction()
+{
+    PROFILE_SCOPE(g_profiler);
+    
+    // Function implementation
+    for(int i = 0; i < 1000; i++)
+    {
+        // Some computation
+        double result = MathSin(i * 0.01);
+    }
+}
+```
+
+### Error Handling v  Exception Simulation
+
+MQL5 khng c try-catch mechanism, nhng chng ta c th implement error handling patterns.
+
+```cpp
+// Error handling framework
+enum ENUM_ERROR_TYPE
+{
+    ERROR_TYPE_NONE = 0,
+    ERROR_TYPE_INVALID_PARAMETER = 1,
+    ERROR_TYPE_INSUFFICIENT_FUNDS = 2,
+    ERROR_TYPE_TRADE_DISABLED = 3,
+    ERROR_TYPE_MARKET_CLOSED = 4,
+    ERROR_TYPE_NETWORK_ERROR = 5,
+    ERROR_TYPE_BROKER_ERROR = 6,
+    ERROR_TYPE_INTERNAL_ERROR = 7
+};
+
+struct SErrorInfo
+{
+    ENUM_ERROR_TYPE type;
+    int code;
+    string message;
+    string function;
+    int line;
+    datetime timestamp;
+};
+
+class CErrorHandler
+{
+private:
+    SErrorInfo m_lastError;
+    SErrorInfo m_errorHistory[];
+    int m_errorCount;
+    
+public:
+    CErrorHandler();
+    
+    void SetError(ENUM_ERROR_TYPE type, int code, string message, 
+                  string function = __FUNCTION__, int line = __LINE__);
+    void ClearError();
+    
+    bool HasError() const { return m_lastError.type != ERROR_TYPE_NONE; }
+    SErrorInfo GetLastError() const { return m_lastError; }
+    
+    void PrintErrorHistory();
+    string GetErrorDescription(ENUM_ERROR_TYPE type);
+    
+private:
+    void AddToHistory(const SErrorInfo& error);
+};
+
+// Error handling macros
+#define SET_ERROR(handler, type, code, message) \
+    handler.SetError(type, code, message, __FUNCTION__, __LINE__)
+
+#define CHECK_ERROR(handler, returnValue) \
+    if(handler.HasError()) { \
+        Print("ERROR in ", __FUNCTION__, ": ", handler.GetLastError().message); \
+        return returnValue; \
+    }
+
+// Usage example
+bool CTradeManager::OpenBuyOrder(double lots, double sl, double tp)
+{
+    // Clear previous errors
+    m_errorHandler.ClearError();
+    
+    // Validate parameters
+    if(lots <= 0)
+    {
+        SET_ERROR(m_errorHandler, ERROR_TYPE_INVALID_PARAMETER, 1001, 
+                 "Invalid lot size: " + DoubleToString(lots));
+        return false;
+    }
+    
+    // Check account balance
+    double requiredMargin = lots * SymbolInfoDouble(_Symbol, SYMBOL_MARGIN_INITIAL);
+    if(AccountInfoDouble(ACCOUNT_MARGIN_FREE) < requiredMargin)
+    {
+        SET_ERROR(m_errorHandler, ERROR_TYPE_INSUFFICIENT_FUNDS, 1002,
+                 "Insufficient funds for trade");
+        return false;
+    }
+    
+    // Execute trade
+    MqlTradeRequest request = {};
+    MqlTradeResult result = {};
+    
+    request.action = TRADE_ACTION_DEAL;
+    request.symbol = _Symbol;
+    request.volume = lots;
+    request.type = ORDER_TYPE_BUY;
+    request.price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+    request.sl = sl;
+    request.tp = tp;
+    request.magic = m_magicNumber;
+    
+    bool success = OrderSend(request, result);
+    
+    if(!success || result.retcode != TRADE_RETCODE_DONE)
+    {
+        SET_ERROR(m_errorHandler, ERROR_TYPE_BROKER_ERROR, result.retcode,
+                 "Trade execution failed: " + result.comment);
+        return false;
+    }
+    
+    return true;
+}
+```
+
+### Testing v  Validation Frameworks
+
+Automated testing l  crucial cho ensuring code quality.
+
+```cpp
+// Unit testing framework cho MQL5
+class CUnitTest
+{
+private:
+    string m_testName;
+    int m_totalTests;
+    int m_passedTests;
+    int m_failedTests;
+    
+public:
+    CUnitTest(string testName);
+    ~CUnitTest();
+    
+    void AssertTrue(bool condition, string message);
+    void AssertFalse(bool condition, string message);
+    void AssertEqual(double expected, double actual, double tolerance, string message);
+    void AssertEqual(int expected, int actual, string message);
+    void AssertEqual(string expected, string actual, string message);
+    
+    void PrintResults();
+    bool AllTestsPassed() const { return m_failedTests == 0; }
+    
+private:
+    void RecordTest(bool passed, string message);
+};
+
+// Test implementation example
+void TestPositionSizeCalculation()
+{
+    CUnitTest test("Position Size Calculation Tests");
+    
+    CRiskManager riskManager;
+    
+    // Test 1: Normal calculation
+    double posSize = riskManager.CalculatePositionSize(10000, 2.0, 50);
+    test.AssertTrue(posSize > 0, "Position size should be positive");
+    test.AssertTrue(posSize <= 1.0, "Position size should be reasonable");
+    
+    // Test 2: Zero risk
+    posSize = riskManager.CalculatePositionSize(10000, 0, 50);
+    test.AssertEqual(0.0, posSize, 0.001, "Zero risk should return zero position");
+    
+    // Test 3: Invalid parameters
+    posSize = riskManager.CalculatePositionSize(-1000, 2.0, 50);
+    test.AssertEqual(0.0, posSize, 0.001, "Negative balance should return zero");
+    
+    test.PrintResults();
+}
+
+// Integration testing
+void TestFullTradingCycle()
+{
+    CUnitTest test("Full Trading Cycle Tests");
+    
+    CAdvancedEA ea("EURUSD");
+    
+    // Test initialization
+    bool initResult = ea.Initialize();
+    test.AssertTrue(initResult, "EA should initialize successfully");
+    
+    // Test signal generation
+    bool hasSignal = ea.GenerateSignal();
+    test.AssertTrue(hasSignal || !hasSignal, "Signal generation should not crash");
+    
+    // Test trade execution (in demo mode)
+    if(hasSignal && AccountInfoInteger(ACCOUNT_TRADE_MODE) == ACCOUNT_TRADE_MODE_DEMO)
+    {
+        bool tradeResult = ea.ExecuteTrade();
+        test.AssertTrue(tradeResult, "Trade execution should succeed in demo");
+    }
+    
+    test.PrintResults();
+}
+```
+
+Debugging v  troubleshooting trong MQL5 'i hi mt approach systematic v  tools comprehensive. Vic master nhng techniques n y s gip bn develop nhng EA robust v  reliable, c kh nng handle 'c mi tnh hu'ng phc tp trong trading environment.
+
+
+## Compilation Issues v  Solutions
+
+### T- ng Quan v Common Compilation Challenges
+
+Compilation errors trong MQL5 c th range t simple syntax mistakes 'n complex architectural issues. Hiu r v cc loi errors thng gp v  cch resolve chng l  essential skill cho mi MQL5 developer. Phn n y s cover nhng issues phc tp nht m  developers thng encounter, 'c bit khi working vi large, multi-module projects.
+
+### Critical Compilation Issues v  Hard-to-Fix Problems
+
+#### 1. Pointer vs Object Syntax Confusion
+
+y l  mt trong nhng issues confusing nht cho developers chuyn t C++ sang MQL5.
+
+```cpp
+//  COMMON ERROR - MQL5 khng support pointer syntax cho objects
+class CLogger
+{
+public:
+    void LogInfo(string message) { Print("INFO: ", message); }
+    void LogError(string message) { Print("ERROR: ", message); }
+};
+
+void ProblematicCode()
+{
+    CLogger* m_pLogger = new CLogger();
+    
+    //  COMPILATION ERROR - Syntax khng 'c support
+    m_pLogger->LogInfo("This will not compile!");
+    
+    // ... CORRECT SYNTAX - S dng dot notation
+    m_pLogger.LogInfo("This compiles correctly");
+    
+    delete m_pLogger;
+}
+
+// ... BEST PRACTICE - Consistent naming v  proper cleanup
+class CAdvancedLogger
+{
+private:
+    int m_fileHandle;
+    string m_logFile;
+    
+public:
+    CAdvancedLogger(string filename);
+    ~CAdvancedLogger();
+    
+    void LogInfo(string message);
+    void LogError(string message);
+    void LogDebug(string message);
+    
+private:
+    void WriteToFile(string level, string message);
+    string GetTimestamp();
+};
+
+// Proper implementation vi error handling
+CAdvancedLogger::CAdvancedLogger(string filename)
+{
+    m_logFile = filename;
+    m_fileHandle = FileOpen(m_logFile, FILE_WRITE | FILE_TXT | FILE_ANSI);
+    
+    if(m_fileHandle == INVALID_HANDLE)
+    {
+        Print("ERROR: Cannot create log file: ", m_logFile);
+        Print("Error code: ", GetLastError());
+    }
+}
+
+CAdvancedLogger::~CAdvancedLogger()
+{
+    if(m_fileHandle != INVALID_HANDLE)
+    {
+        FileClose(m_fileHandle);
+        m_fileHandle = INVALID_HANDLE;
+    }
+}
+```
+
+**Ti sao kh khc phc:**
+- Documentation khng r r ng v object semantics
+- Developers t C++ background expect pointer syntax
+- Error messages khng specific v syntax requirements
+
+**Solution Strategy:**
+- Always use dot notation cho object access
+- Implement consistent naming conventions
+- Use static analysis tools ' detect syntax issues early
+
+#### 2. Memory Management Hell
+
+MQL5 khng c garbage collector, leading 'n complex memory management issues.
+
+```cpp
+//  DANGEROUS PATTERNS - Common memory management mistakes
+
+class CRiskyMemoryExample
+{
+private:
+    CTradeManager* m_pTradeManager;
+    CIndicator* m_pIndicators[10];
+    int m_indicatorCount;
+    
+public:
+    void BadInitialization()
+    {
+        //  MEMORY LEAK - Khng check existing allocation
+        m_pTradeManager = new CTradeManager();  // Potential leak nu called multiple times
+        
+        //  DANGEROUS - Khng initialize array
+        for(int i = 0; i < 10; i++)
+        {
+            m_pIndicators[i] = new CIndicator();  // Potential leaks
+        }
+    }
+    
+    void BadCleanup()
+    {
+        //  DOUBLE DELETION - Crash guaranteed
+        delete m_pTradeManager;
+        delete m_pTradeManager;  // CRASH!
+        
+        //  INCOMPLETE CLEANUP - Memory leaks
+        for(int i = 0; i < 5; i++)  // Only cleaning 5 out of 10!
+        {
+            delete m_pIndicators[i];
+        }
+    }
+};
+
+// ... SAFE MEMORY MANAGEMENT - Proper patterns
+class CSafeMemoryExample
+{
+private:
+    CTradeManager* m_pTradeManager;
+    CIndicator* m_pIndicators[];
+    int m_indicatorCount;
+    bool m_isInitialized;
+    
+public:
+    CSafeMemoryExample();
+    ~CSafeMemoryExample();
+    
+    bool Initialize();
+    void Cleanup();
+    bool AddIndicator(CIndicator* indicator);
+    
+private:
+    void SafeDelete(CTradeManager*& ptr);
+    void CleanupIndicators();
+};
+
+CSafeMemoryExample::CSafeMemoryExample()
+{
+    m_pTradeManager = NULL;
+    m_indicatorCount = 0;
+    m_isInitialized = false;
+    ArrayResize(m_pIndicators, 0);
+}
+
+CSafeMemoryExample::~CSafeMemoryExample()
+{
+    Cleanup();
+}
+
+bool CSafeMemoryExample::Initialize()
+{
+    if(m_isInitialized)
+    {
+        Print("WARNING: Already initialized, cleaning up first");
+        Cleanup();
+    }
+    
+    // Safe allocation vi error checking
+    m_pTradeManager = new CTradeManager();
+    if(m_pTradeManager == NULL)
+    {
+        Print("ERROR: Failed to allocate TradeManager");
+        return false;
+    }
+    
+    m_isInitialized = true;
+    return true;
+}
+
+void CSafeMemoryExample::SafeDelete(CTradeManager*& ptr)
+{
+    if(ptr != NULL)
+    {
+        delete ptr;
+        ptr = NULL;  // Prevent double deletion
+    }
+}
+
+void CSafeMemoryExample::Cleanup()
+{
+    if(!m_isInitialized)
+        return;
+        
+    SafeDelete(m_pTradeManager);
+    CleanupIndicators();
+    
+    m_isInitialized = false;
+}
+
+void CSafeMemoryExample::CleanupIndicators()
+{
+    for(int i = 0; i < m_indicatorCount; i++)
+    {
+        if(m_pIndicators[i] != NULL)
+        {
+            delete m_pIndicators[i];
+            m_pIndicators[i] = NULL;
+        }
+    }
+    
+    ArrayFree(m_pIndicators);
+    m_indicatorCount = 0;
+}
+
+// RAII Pattern Implementation
+class CSmartPointer
+{
+private:
+    CTradeManager* m_ptr;
+    bool m_ownsPointer;
+    
+public:
+    CSmartPointer(CTradeManager* ptr, bool takeOwnership = true)
+        : m_ptr(ptr), m_ownsPointer(takeOwnership) {}
+    
+    ~CSmartPointer()
+    {
+        if(m_ownsPointer && m_ptr != NULL)
+        {
+            delete m_ptr;
+            m_ptr = NULL;
+        }
+    }
+    
+    CTradeManager* Get() { return m_ptr; }
+    CTradeManager* Release() 
+    { 
+        m_ownsPointer = false; 
+        return m_ptr; 
+    }
+    
+    // Prevent copying
+    CSmartPointer(const CSmartPointer&) = delete;
+    CSmartPointer& operator=(const CSmartPointer&) = delete;
+};
+
+// Usage example
+void SafeMemoryUsage()
+{
+    CSmartPointer smartPtr(new CTradeManager());
+    
+    // Use the pointer safely
+    if(smartPtr.Get() != NULL)
+    {
+        smartPtr.Get().ExecuteTrade();
+    }
+    
+    // Automatic cleanup when smartPtr goes out of scope
+}
+```
+
+#### 3. Deprecated Constants v  Functions
+
+MQL5 constantly evolves, leading to deprecated functions v  breaking changes.
+
+```cpp
+//  DEPRECATED PATTERNS - S cause compilation errors in future versions
+
+void DeprecatedAccountInfo()
+{
+    //  DEPRECATED - Old account information functions
+    double balance = AccountBalance();           // Deprecated
+    double equity = AccountEquity();             // Deprecated
+    double freeMargin = AccountFreeMargin();     // Deprecated
+    double margin = AccountMargin();             // Deprecated
+    
+    //  DEPRECATED - Old order functions
+    int total = OrdersTotal();                   // Still works but discouraged
+    bool selected = OrderSelect(0, SELECT_BY_POS); // Old style
+}
+
+// ... MODERN APPROACH - Current best practices
+void ModernAccountInfo()
+{
+    // ... CURRENT - New account information functions
+    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+    double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
+    
+    // ... CURRENT - New position v  order handling
+    int totalPositions = PositionsTotal();
+    int totalOrders = OrdersTotal();
+    
+    // Modern position iteration
+    for(int i = 0; i < totalPositions; i++)
+    {
+        ulong ticket = PositionGetTicket(i);
+        if(ticket > 0)
+        {
+            string symbol = PositionGetString(POSITION_SYMBOL);
+            double volume = PositionGetDouble(POSITION_VOLUME);
+            double profit = PositionGetDouble(POSITION_PROFIT);
+            
+            Print("Position: ", ticket, " Symbol: ", symbol, 
+                  " Volume: ", volume, " Profit: ", profit);
+        }
+    }
+}
+
+// ... FUTURE-PROOF WRAPPER - Abstraction layer cho API changes
+class CAccountInfoWrapper
+{
+public:
+    static double GetBalance()
+    {
+        return AccountInfoDouble(ACCOUNT_BALANCE);
+    }
+    
+    static double GetEquity()
+    {
+        return AccountInfoDouble(ACCOUNT_EQUITY);
+    }
+    
+    static double GetFreeMargin()
+    {
+        return AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+    }
+    
+    static double GetMarginLevel()
+    {
+        double margin = AccountInfoDouble(ACCOUNT_MARGIN);
+        if(margin > 0)
+            return AccountInfoDouble(ACCOUNT_EQUITY) / margin * 100;
+        return 0;
+    }
+    
+    static bool IsTradeAllowed()
+    {
+        return AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) && 
+               AccountInfoInteger(ACCOUNT_TRADE_EXPERT);
+    }
+    
+    static string GetAccountCurrency()
+    {
+        return AccountInfoString(ACCOUNT_CURRENCY);
+    }
+};
+```
+
+### Architecture v  Design Issues
+
+#### 4. Circular Dependencies
+
+Circular dependencies l  mt trong nhng issues phc tp nht trong large projects.
+
+```cpp
+//  CIRCULAR DEPENDENCY PROBLEM
+// File: TradeManager.mqh
+#include "RiskManager.mqh"
+
+class CTradeManager
+{
+private:
+    CRiskManager* m_riskManager;  // Depends on RiskManager
+    
+public:
+    bool ExecuteTrade(double lots);
+};
+
+// File: RiskManager.mqh  
+#include "TradeManager.mqh"  //  CIRCULAR DEPENDENCY!
+
+class CRiskManager
+{
+private:
+    CTradeManager* m_tradeManager;  // Depends on TradeManager
+    
+public:
+    double CalculateRisk();
+};
+
+// ... SOLUTION 1: Forward Declarations
+// File: TradeManager.mqh
+class CRiskManager;  // Forward declaration
+
+class CTradeManager
+{
+private:
+    CRiskManager* m_riskManager;
+    
+public:
+    CTradeManager();
+    ~CTradeManager();
+    bool ExecuteTrade(double lots);
+    void SetRiskManager(CRiskManager* riskManager);
+};
+
+// File: RiskManager.mqh
+class CTradeManager;  // Forward declaration
+
+class CRiskManager
+{
+private:
+    CTradeManager* m_tradeManager;
+    
+public:
+    CRiskManager();
+    ~CRiskManager();
+    double CalculateRisk();
+    void SetTradeManager(CTradeManager* tradeManager);
+};
+
+// ... SOLUTION 2: Interface Segregation
+// File: Interfaces.mqh
+class ITradeExecutor
+{
+public:
+    virtual bool ExecuteTrade(double lots) = 0;
+    virtual ~ITradeExecutor() {}
+};
+
+class IRiskCalculator
+{
+public:
+    virtual double CalculateRisk() = 0;
+    virtual ~IRiskCalculator() {}
+};
+
+// File: TradeManager.mqh
+#include "Interfaces.mqh"
+
+class CTradeManager : public ITradeExecutor
+{
+private:
+    IRiskCalculator* m_riskCalculator;
+    
+public:
+    CTradeManager(IRiskCalculator* riskCalc) : m_riskCalculator(riskCalc) {}
+    
+    virtual bool ExecuteTrade(double lots) override
+    {
+        double risk = m_riskCalculator.CalculateRisk();
+        // Execute trade logic
+        return true;
+    }
+};
+
+// File: RiskManager.mqh
+#include "Interfaces.mqh"
+
+class CRiskManager : public IRiskCalculator
+{
+private:
+    ITradeExecutor* m_tradeExecutor;
+    
+public:
+    CRiskManager(ITradeExecutor* executor) : m_tradeExecutor(executor) {}
+    
+    virtual double CalculateRisk() override
+    {
+        // Risk calculation logic
+        return 2.0;
+    }
+};
+```
+
+#### 5. Global Variable Chaos
+
+Global variables c th lead 'n maintainability nightmares.
+
+```cpp
+//  GLOBAL VARIABLE HELL - Avoid this pattern
+int g_magicNumber = 12345;
+double g_riskPercent = 2.0;
+string g_symbol = "EURUSD";
+bool g_isTrading = true;
+CTradeManager* g_tradeManager = NULL;
+CRiskManager* g_riskManager = NULL;
+// ... hundreds more globals
+
+void OnTick()
+{
+    // Globals scattered everywhere, hard to track dependencies
+    if(g_isTrading && g_tradeManager != NULL)
+    {
+        g_tradeManager.ProcessTick();
+    }
+}
+
+// ... SOLUTION: Centralized Configuration Management
+class CConfiguration
+{
+private:
+    static CConfiguration* s_instance;
+    
+    // Configuration data
+    int m_magicNumber;
+    double m_riskPercent;
+    string m_symbol;
+    bool m_isTrading;
+    
+    CConfiguration();  // Private constructor for singleton
+    
+public:
+    static CConfiguration* GetInstance();
+    static void DestroyInstance();
+    
+    // Configuration accessors
+    int GetMagicNumber() const { return m_magicNumber; }
+    void SetMagicNumber(int magic) { m_magicNumber = magic; }
+    
+    double GetRiskPercent() const { return m_riskPercent; }
+    void SetRiskPercent(double risk) { m_riskPercent = risk; }
+    
+    string GetSymbol() const { return m_symbol; }
+    void SetSymbol(string symbol) { m_symbol = symbol; }
+    
+    bool IsTrading() const { return m_isTrading; }
+    void SetTrading(bool trading) { m_isTrading = trading; }
+    
+    // Load/Save configuration
+    bool LoadFromFile(string filename);
+    bool SaveToFile(string filename);
+    void LoadFromInputs();
+};
+
+// Singleton implementation
+CConfiguration* CConfiguration::s_instance = NULL;
+
+CConfiguration* CConfiguration::GetInstance()
+{
+    if(s_instance == NULL)
+    {
+        s_instance = new CConfiguration();
+    }
+    return s_instance;
+}
+
+void CConfiguration::DestroyInstance()
+{
+    if(s_instance != NULL)
+    {
+        delete s_instance;
+        s_instance = NULL;
+    }
+}
+
+// Usage
+void OnTick()
+{
+    CConfiguration* config = CConfiguration::GetInstance();
+    
+    if(config.IsTrading())
+    {
+        // Use configuration safely
+        int magic = config.GetMagicNumber();
+        double risk = config.GetRiskPercent();
+    }
+}
+
+// ... ALTERNATIVE: Dependency Injection Container
+class CDependencyContainer
+{
+private:
+    CTradeManager* m_tradeManager;
+    CRiskManager* m_riskManager;
+    CConfiguration* m_configuration;
+    
+public:
+    CDependencyContainer();
+    ~CDependencyContainer();
+    
+    bool Initialize();
+    void Cleanup();
+    
+    // Service accessors
+    CTradeManager* GetTradeManager() { return m_tradeManager; }
+    CRiskManager* GetRiskManager() { return m_riskManager; }
+    CConfiguration* GetConfiguration() { return m_configuration; }
+    
+private:
+    bool CreateServices();
+    bool ConfigureServices();
+};
+```
+
+#### 6. Include Order Dependencies
+
+Include order problems c th cause subtle compilation issues.
+
+```cpp
+//  FRAGILE INCLUDE ORDER
+// File: Main.mq5
+#include "TradeManager.mqh"  // Depends on Logger
+#include "Logger.mqh"        // Should be included first!
+
+// ... SOLUTION: Proper Include Guards v  Dependency Management
+// File: Logger.mqh
+#ifndef LOGGER_MQH
+#define LOGGER_MQH
+
+class CLogger
+{
+    // Implementation
+};
+
+#endif // LOGGER_MQH
+
+// File: TradeManager.mqh
+#ifndef TRADEMANAGER_MQH
+#define TRADEMANAGER_MQH
+
+#include "Logger.mqh"  // Explicit dependency
+
+class CTradeManager
+{
+private:
+    CLogger* m_logger;
+    
+public:
+    // Implementation
+};
+
+#endif // TRADEMANAGER_MQH
+
+// File: Main.mq5
+// Order doesn't matter now due to proper include guards
+#include "TradeManager.mqh"
+#include "Logger.mqh"
+
+// ... BEST PRACTICE: Master Include File
+// File: Includes.mqh
+#ifndef INCLUDES_MQH
+#define INCLUDES_MQH
+
+// System includes first
+#include <Trade\Trade.mqh>
+#include <Arrays\ArrayObj.mqh>
+
+// Project includes in dependency order
+#include "Logger.mqh"
+#include "Configuration.mqh"
+#include "RiskManager.mqh"
+#include "TradeManager.mqh"
+#include "SignalGenerator.mqh"
+#include "EA.mqh"
+
+#endif // INCLUDES_MQH
+
+// File: Main.mq5
+#include "Includes.mqh"  // Single include for everything
+
+// ... ADVANCED: Precompiled Headers Simulation
+// File: PCH.mqh (Precompiled Header simulation)
+#ifndef PCH_MQH
+#define PCH_MQH
+
+// Heavy includes that rarely change
+#include <Trade\Trade.mqh>
+#include <Arrays\ArrayObj.mqh>
+#include <Math\Stat\Math.mqh>
+
+// Common project headers
+#include "CommonTypes.mqh"
+#include "Interfaces.mqh"
+#include "Utilities.mqh"
+
+#endif // PCH_MQH
+```
+
+### Compilation Optimization Strategies
+
+#### Build System v  Automation
+
+```cpp
+// Build configuration management
+class CBuildConfiguration
+{
+public:
+    enum ENUM_BUILD_TYPE
+    {
+        BUILD_DEBUG,
+        BUILD_RELEASE,
+        BUILD_TESTING
+    };
+    
+private:
+    static ENUM_BUILD_TYPE s_buildType;
+    
+public:
+    static void SetBuildType(ENUM_BUILD_TYPE type) { s_buildType = type; }
+    static ENUM_BUILD_TYPE GetBuildType() { return s_buildType; }
+    
+    static bool IsDebugBuild() { return s_buildType == BUILD_DEBUG; }
+    static bool IsReleaseBuild() { return s_buildType == BUILD_RELEASE; }
+    static bool IsTestBuild() { return s_buildType == BUILD_TESTING; }
+};
+
+// Conditional compilation macros
+#ifdef _DEBUG
+    #define DEBUG_PRINT(msg) Print("DEBUG: ", msg)
+    #define ASSERT(condition) if(!(condition)) { Print("ASSERTION FAILED: ", #condition, " at ", __FILE__, ":", __LINE__); }
+#else
+    #define DEBUG_PRINT(msg)
+    #define ASSERT(condition)
+#endif
+
+// Performance-critical code optimization
+#ifdef OPTIMIZE_FOR_SPEED
+    #define INLINE_HINT inline
+    #define FORCE_INLINE __forceinline
+#else
+    #define INLINE_HINT
+    #define FORCE_INLINE
+#endif
+
+// Usage example
+INLINE_HINT double FastCalculation(double x, double y)
+{
+    DEBUG_PRINT("FastCalculation called with x=" + DoubleToString(x) + ", y=" + DoubleToString(y));
+    ASSERT(x > 0 && y > 0);
+    
+    return x * y + MathSin(x);
+}
+```
+
+Understanding v  properly handling compilation issues trong MQL5 l  crucial cho developing robust, maintainable EAs. Nhng patterns v  solutions presented  'y s help bn avoid common pitfalls v  build more reliable trading systems.
+
+
+## Tnh Nng Mi Nht MetaTrader 5
+
+### Platform Updates v  Enhancements (2024-2025)
+
+MetaTrader 5 lin tc 'c update vi nhng tnh nng mi v  improvements. Hiu r v nhng changes n y l  essential ' leverage latest capabilities v  ensure compatibility.
+
+#### Build 5120 Updates (June 2025)
+
+**Terminal Improvements:**
+- Fixed graphical interface display issues trn Linux v  macOS
+- Improved platform update mechanism - MQL5 Standard Library khng cn b entirely overwritten during updates
+- Added automatic reset ca full-screen view mode on application restart
+
+**MQL5 Language Enhancements:**
+```cpp
+// ... NEW FEATURE: Enhanced array passing vi signed/unsigned typecasting
+void NewArrayFeatures()
+{
+    // Cc functions n y now support arrays vi signed/unsigned typecasting:
+    uchar data[];
+    ArrayResize(data, 1000);
+    
+    // ArraySwap now supports typecasting
+    uchar array1[], array2[];
+    ArraySwap(array1, array2);  // Enhanced functionality
+    
+    // WebRequest vi improved array handling
+    string headers = "Content-Type: application/json\r\n";
+    uchar request[], response[];
+    string responseHeaders;
+    
+    // Improved array support
+    int result = WebRequest("POST", "https://api.example.com/data", 
+                           headers, 5000, request, response, responseHeaders);
+    
+    // Enhanced cryptographic functions
+    uchar key[] = {1,2,3,4,5,6,7,8};
+    uchar encrypted[], decrypted[];
+    
+    CryptEncode(CRYPT_AES256, data, key, encrypted);
+    CryptDecode(CRYPT_AES256, encrypted, key, decrypted);
+}
+
+// ... FIXED: ArrayInitialize function operation cho enum arrays
+enum ENUM_TRADE_STATE
+{
+    TRADE_STATE_NONE,
+    TRADE_STATE_PENDING,
+    TRADE_STATE_ACTIVE,
+    TRADE_STATE_CLOSED
+};
+
+void EnumArrayExample()
+{
+    ENUM_TRADE_STATE states[];
+    ArrayResize(states, 100);
+    
+    // This now works correctly in latest builds
+    ArrayInitialize(states, TRADE_STATE_NONE);
+    
+    for(int i = 0; i < ArraySize(states); i++)
+    {
+        Print("State[", i, "] = ", EnumToString(states[i]));
+    }
+}
+```
+
+**MetaEditor Enhancements:**
+- Updated AI Assistant vi all GPT-4.1 v  04-mini models support
+- Enhanced MQL5 Storage vi strict file status verification
+- Improved file hash checking ' prevent false indications
+
+#### Mobile Platform Features (iOS Updates - June 2025)
+
+**Trading Report Feature:**
+```cpp
+// New trading report capabilities accessible through mobile API
+class CMobileReportGenerator
+{
+public:
+    struct SReportData
+    {
+        double totalProfit;
+        double totalLoss;
+        int totalTrades;
+        double winRate;
+        double maxDrawdown;
+        double sharpeRatio;
+        double profitFactor;
+    };
+    
+    static bool GenerateReport(datetime from, datetime to, SReportData& report);
+    static bool ExportToMobile(const SReportData& report);
+    
+private:
+    static double CalculateSharpeRatio(double returns[], int count);
+    static double CalculateProfitFactor(double profits[], double losses[], int count);
+};
+
+// Usage example
+void GenerateMobileCompatibleReport()
+{
+    CMobileReportGenerator::SReportData report;
+    
+    if(CMobileReportGenerator::GenerateReport(
+        StringToTime("2025.01.01"), TimeCurrent(), report))
+    {
+        Print("Report generated successfully:");
+        Print("Total Profit: ", report.totalProfit);
+        Print("Win Rate: ", report.winRate, "%");
+        Print("Max Drawdown: ", report.maxDrawdown, "%");
+        
+        // Export for mobile viewing
+        CMobileReportGenerator::ExportToMobile(report);
+    }
+}
+```
+
+**New Indicators Support:**
+- ZigZag indicator vi enhanced functionality
+- Market Profile indicator cho volume analysis
+- Heikin Ashi chart type support
+
+```cpp
+// Enhanced ZigZag implementation
+class CAdvancedZigZag
+{
+private:
+    int m_handle;
+    double m_depth;
+    double m_deviation;
+    double m_backstep;
+    
+public:
+    CAdvancedZigZag(double depth = 12, double deviation = 5, double backstep = 3);
+    ~CAdvancedZigZag();
+    
+    bool Initialize(string symbol, ENUM_TIMEFRAMES timeframe);
+    bool GetZigZagValues(double& buffer[], int count);
+    bool GetLastPivots(double& high, double& low);
+    
+private:
+    bool ValidateParameters();
+};
+
+// Market Profile implementation
+class CMarketProfile
+{
+private:
+    struct SPriceLevel
+    {
+        double price;
+        long volume;
+        int timeSpent;
+    };
+    
+    SPriceLevel m_profile[];
+    int m_profileSize;
+    
+public:
+    bool BuildProfile(datetime from, datetime to);
+    double GetVolumeAtPrice(double price);
+    double GetPOC();  // Point of Control
+    bool GetValueArea(double& vaHigh, double& vaLow, double percentage = 70.0);
+    
+private:
+    void SortByVolume();
+    double CalculateValueArea(double percentage);
+};
+```
+
+### Git Integration v  MQL5 Algo Forge
+
+**New Development Workflow:**
+```cpp
+// Git integration best practices cho MQL5 projects
+class CVersionControl
+{
+public:
+    struct SCommitInfo
+    {
+        string hash;
+        string message;
+        datetime timestamp;
+        string author;
+    };
+    
+    static bool InitializeRepository(string projectPath);
+    static bool CommitChanges(string message);
+    static bool PushToRemote(string remoteName = "origin");
+    static bool GetCommitHistory(SCommitInfo& commits[]);
+    
+private:
+    static string ExecuteGitCommand(string command);
+    static bool ValidateGitRepository();
+};
+
+// Project structure cho Git compatibility
+/*
+Project Structure:
+/MyEA/
+""" .git/
+""" .gitignore
+""" README.md
+""" src/
+"   """ MyEA.mq5
+"   """ Include/
+"   "   """ TradeManager.mqh
+"   "   """ RiskManager.mqh
+"   "   """" Logger.mqh
+"   """" Libraries/
+""" Tests/
+"   """ UnitTests.mq5
+"   """" TestData/
+""" Documentation/
+"""" Build/
+    """ Release/
+    """" Debug/
+*/
+
+// .gitignore template cho MQL5 projects
+/*
+# Compiled files
+*.ex5
+*.ex4
+
+# Log files
+*.log
+Logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+*.sublime-*
+
+# Build artifacts
+Build/Debug/
+Build/Release/
+
+# Test results
+TestResults/
+
+# Personal settings
+Settings/Personal/
+*/
+```
+
+### Performance Improvements v  Optimization
+
+#### Enhanced Memory Management
+
+```cpp
+// New memory optimization techniques
+class COptimizedMemoryManager
+{
+private:
+    struct SMemoryPool
+    {
+        void* memory;
+        int size;
+        bool inUse;
+    };
+    
+    SMemoryPool m_pools[];
+    int m_poolCount;
+    int m_totalAllocated;
+    
+public:
+    COptimizedMemoryManager(int initialPoolSize = 1024);
+    ~COptimizedMemoryManager();
+    
+    void* Allocate(int size);
+    void Deallocate(void* ptr);
+    void DefragmentMemory();
+    
+    // Performance monitoring
+    int GetTotalAllocated() const { return m_totalAllocated; }
+    double GetFragmentationRatio();
+    
+private:
+    SMemoryPool* FindFreePool(int size);
+    void ExpandPools();
+    void CompactPools();
+};
+
+// Usage vi RAII pattern
+class CMemoryScope
+{
+private:
+    COptimizedMemoryManager* m_manager;
+    void* m_allocations[];
+    int m_allocationCount;
+    
+public:
+    CMemoryScope(COptimizedMemoryManager* manager) : m_manager(manager)
+    {
+        m_allocationCount = 0;
+        ArrayResize(m_allocations, 0);
+    }
+    
+    ~CMemoryScope()
+    {
+        // Automatic cleanup of all allocations
+        for(int i = 0; i < m_allocationCount; i++)
+        {
+            if(m_allocations[i] != NULL)
+            {
+                m_manager.Deallocate(m_allocations[i]);
+            }
+        }
+    }
+    
+    void* Allocate(int size)
+    {
+        void* ptr = m_manager.Allocate(size);
+        if(ptr != NULL)
+        {
+            ArrayResize(m_allocations, m_allocationCount + 1);
+            m_allocations[m_allocationCount] = ptr;
+            m_allocationCount++;
+        }
+        return ptr;
+    }
+};
+```
+
+#### Optimized Data Structures
+
+```cpp
+// High-performance data structures cho trading
+template<typename T>
+class CCircularBuffer
+{
+private:
+    T m_buffer[];
+    int m_size;
+    int m_head;
+    int m_tail;
+    int m_count;
+    
+public:
+    CCircularBuffer(int size);
+    ~CCircularBuffer();
+    
+    bool Push(const T& item);
+    bool Pop(T& item);
+    bool Peek(T& item);
+    
+    int Count() const { return m_count; }
+    bool IsFull() const { return m_count == m_size; }
+    bool IsEmpty() const { return m_count == 0; }
+    
+    void Clear();
+    
+private:
+    int NextIndex(int index) { return (index + 1) % m_size; }
+};
+
+// Specialized cho price data
+class CPriceBuffer : public CCircularBuffer<double>
+{
+private:
+    double m_sum;
+    double m_min;
+    double m_max;
+    
+public:
+    CPriceBuffer(int size) : CCircularBuffer<double>(size)
+    {
+        m_sum = 0;
+        m_min = DBL_MAX;
+        m_max = -DBL_MAX;
+    }
+    
+    bool Push(double price) override
+    {
+        if(IsFull())
+        {
+            double oldPrice;
+            Pop(oldPrice);
+            m_sum -= oldPrice;
+        }
+        
+        bool result = CCircularBuffer<double>::Push(price);
+        if(result)
+        {
+            m_sum += price;
+            m_min = MathMin(m_min, price);
+            m_max = MathMax(m_max, price);
+        }
+        
+        return result;
+    }
+    
+    double GetAverage() { return Count() > 0 ? m_sum / Count() : 0; }
+    double GetMin() { return m_min; }
+    double GetMax() { return m_max; }
+    double GetRange() { return m_max - m_min; }
+};
+```
+
+### Advanced Testing Framework
+
+```cpp
+// Enhanced testing capabilities
+class CAdvancedTestFramework
+{
+public:
+    enum ENUM_TEST_TYPE
+    {
+        TEST_TYPE_UNIT,
+        TEST_TYPE_INTEGRATION,
+        TEST_TYPE_PERFORMANCE,
+        TEST_TYPE_STRESS
+    };
+    
+    struct STestResult
+    {
+        string testName;
+        ENUM_TEST_TYPE type;
+        bool passed;
+        double executionTime;
+        string errorMessage;
+        datetime timestamp;
+    };
+    
+private:
+    STestResult m_results[];
+    int m_resultCount;
+    
+public:
+    void RunUnitTests();
+    void RunIntegrationTests();
+    void RunPerformanceTests();
+    void RunStressTests();
+    
+    void GenerateReport(string filename);
+    bool AllTestsPassed();
+    
+private:
+    void AddResult(const STestResult& result);
+    void RunTest(string testName, ENUM_TEST_TYPE type, bool (*testFunction)());
+};
+
+// Performance testing example
+bool TestPositionSizeCalculationPerformance()
+{
+    CRiskManager riskManager;
+    ulong startTime = GetMicrosecondCount();
+    
+    // Run calculation 10000 times
+    for(int i = 0; i < 10000; i++)
+    {
+        double posSize = riskManager.CalculatePositionSize(10000, 2.0, 50);
+    }
+    
+    ulong endTime = GetMicrosecondCount();
+    double avgTime = (endTime - startTime) / 10000.0;
+    
+    // Performance requirement: < 10 microseconds per calculation
+    return avgTime < 10.0;
+}
+
+// Stress testing example
+bool TestMemoryUnderStress()
+{
+    COptimizedMemoryManager manager;
+    
+    // Allocate v  deallocate rapidly
+    for(int i = 0; i < 100000; i++)
+    {
+        void* ptr = manager.Allocate(1024);
+        if(ptr == NULL)
+            return false;
+            
+        if(i % 2 == 0)
+            manager.Deallocate(ptr);
+    }
+    
+    // Check for memory leaks
+    return manager.GetFragmentationRatio() < 0.1;
+}
+```
+
+## Best Practices v  Recommendations
+
+### Code Quality Standards
+
+```cpp
+// Coding standards enforcement
+class CCodeQualityChecker
+{
+public:
+    struct SQualityMetrics
+    {
+        int linesOfCode;
+        int cyclomaticComplexity;
+        double testCoverage;
+        int codeSmells;
+        int duplicatedLines;
+    };
+    
+    static bool AnalyzeFile(string filename, SQualityMetrics& metrics);
+    static bool MeetsQualityStandards(const SQualityMetrics& metrics);
+    static void GenerateQualityReport(const SQualityMetrics& metrics);
+    
+private:
+    static int CalculateCyclomaticComplexity(string code);
+    static int DetectCodeSmells(string code);
+    static int FindDuplicatedCode(string code);
+};
+
+// Quality gates
+bool QualityGate(const CCodeQualityChecker::SQualityMetrics& metrics)
+{
+    return metrics.cyclomaticComplexity < 10 &&
+           metrics.testCoverage > 80.0 &&
+           metrics.codeSmells < 5 &&
+           metrics.duplicatedLines < 100;
+}
+```
+
+### Documentation Standards
+
+```cpp
+/**
+ * @brief Advanced EA template vi comprehensive documentation
+ * @author Your Name
+ * @version 2.0
+ * @date 2025-07-05
+ * 
+ * @details This EA implements advanced trading strategies vi:
+ * - Multi-timeframe analysis
+ * - Dynamic risk management
+ * - Performance monitoring
+ * - Error handling v  recovery
+ * 
+ * @requirements
+ * - MetaTrader 5 build 5120 or higher
+ * - Minimum 1GB RAM
+ * - Stable internet connection
+ * 
+ * @configuration
+ * - Risk percentage: 1-5% recommended
+ * - Magic number: Unique per EA instance
+ * - Symbol: Major currency pairs recommended
+ */
+class CAdvancedEA
+{
+private:
+    /**
+     * @brief Trade management component
+     * @details Handles order execution, position management, v  trade monitoring
+     */
+    CTradeManager* m_tradeManager;
+    
+    /**
+     * @brief Risk management component  
+     * @details Calculates position sizes, monitors drawdown, implements stop-loss logic
+     */
+    CRiskManager* m_riskManager;
+    
+public:
+    /**
+     * @brief Constructor
+     * @param symbol Trading symbol (e.g., "EURUSD")
+     * @param riskPercent Risk percentage per trade (1.0 = 1%)
+     * @param magicNumber Unique identifier for this EA instance
+     * @throws std::invalid_argument if parameters are invalid
+     */
+    CAdvancedEA(string symbol, double riskPercent, int magicNumber);
+    
+    /**
+     * @brief Initialize EA components
+     * @return true if initialization successful, false otherwise
+     * @note Must be called before any trading operations
+     */
+    bool Initialize();
+    
+    /**
+     * @brief Process incoming tick data
+     * @details Called on every price update, implements main trading logic
+     * @performance Optimized for sub-millisecond execution
+     */
+    void OnTick();
+    
+    /**
+     * @brief Cleanup resources
+     * @details Automatically called on EA removal or terminal shutdown
+     */
+    void Shutdown();
+};
+```
+
+## Kt Lun
+
+MQL5 Advanced Knowledge Part 2 ' cung cp cho bn nhng kin thc chuyn su v  comprehensive v vic pht trin Expert Advisors chuyn nghip. T Object-Oriented Programming nng cao 'n debugging mastery, t memory management 'n performance optimization, t i liu n y cover tt c aspects quan trng m  mt MQL5 architect cn master.
+
+### Key Takeaways
+
+1. **Object-Oriented Design**: S dng OOP principles ' to ra maintainable v  scalable EAs
+2. **Memory Management**: Proper resource management l  critical cho stability v  performance
+3. **Error Handling**: Comprehensive error handling framework 'm bo robustness
+4. **Debugging Mastery**: Advanced debugging techniques gip identify v  fix issues nhanh chng
+5. **Performance Optimization**: Memory pools, efficient data structures, v  profiling tools
+6. **Modern Development**: Git integration, testing frameworks, v  quality assurance
+
+### Future Directions
+
+MQL5 ecosystem tip tc evolve vi nhng improvements trong:
+- AI integration capabilities
+- Enhanced mobile platform features  
+- Better development tools v  debugging support
+- Performance optimizations
+- Cloud integration possibilities
+
+### Final Recommendations
+
+ tr th nh mt MQL5 expert, bn nn:
+
+1. **Practice Regularly**: Implement nhng patterns v  techniques 'c present trong t i liu n y
+2. **Stay Updated**: Follow MetaTrader 5 release notes v  community discussions
+3. **Test Thoroughly**: S dng comprehensive testing frameworks ' ensure quality
+4. **Document Everything**: Maintain clear documentation cho future maintenance
+5. **Optimize Continuously**: Regular profiling v  optimization ' improve performance
+6. **Learn from Community**: Participate trong MQL5 forums v  share knowledge
+
+Vi nhng kin thc v  techniques 'c present trong Part 2 n y, bn ' c foundation solid ' develop nhng Expert Advisors c cht lng production-ready, vi kh nng handle complex trading scenarios v  maintain high performance under all market conditions.
+
+Remember: Great EAs are not just about profitable strategies - they're about robust architecture, proper error handling, efficient resource management, v  comprehensive testing. Master these fundamentals, v  bn s c th create trading systems truly professional v  reliable.
+
+---
+
+**T i liu tham kho:**
+
+[1] MetaQuotes Software Corp. "MQL5 Reference" - https://www.mql5.com/en/docs  
+[2] MetaQuotes Software Corp. "MetaTrader 5 Release Notes" - https://www.metatrader5.com/en/releasenotes  
+[3] MQL5 Community. "Debugging MQL5 Programs" - https://www.mql5.com/en/articles/654  
+[4] MQL5 Community. "Advanced Memory Management" - https://www.mql5.com/en/articles/17693  
+[5] MQL5 Community. "Design Patterns in MQL5" - https://www.mql5.com/en/articles/13622  
+[6] MQL5 Community. "Multi-module Expert Advisors" - https://www.mql5.com/en/articles/3133  
+[7] MQL5 Community. "Error Handling and Logging" - https://www.mql5.com/en/articles/2041  
+
+---
+
+*T i liu n y 'c to bi Manus AI vi mc 'ch educational v  reference. Mi feedback v  suggestions ' improve t i liu 'u 'c welcome.*
+
+
