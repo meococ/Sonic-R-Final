@@ -692,7 +692,30 @@ filename = "MarketContext_" + _Symbol + "_" + TimeToString(TimeCurrent(), TIME_D
 int fileHandle = FileOpen(filename, FILE_WRITE | FILE_CSV | FILE_COMMON);
 if(fileHandle == INVALID_HANDLE)
 {
-*/
-#endif // ANALYSIS_MARKET_CONTEXT_MQH
+return false;
+}
 
+// SYSTEMATIC FIX - Close incomplete comment and class
+// Write CSV header
+string csvHeader = "Timestamp,Symbol,VolatilityRegime,ATRPercentile,Correlation,MicrostructureState\n";
+FileWriteString(fileHandle, csvHeader);
+
+// Write current data
+string dataLine = StringFormat("%s,%s,%d,%.2f,%.3f,%d\n",
+    TimeToString(TimeCurrent()),
+    _Symbol,
+    (int)m_volatilityAnalyzer.GetVolatilityPercentile(),
+    m_volatilityAnalyzer.GetVolatilityPercentile(),
+    m_correlationAnalyzer.GetStrongestCorrelation(),
+    0  // Placeholder for microstructure state
+);
+FileWriteString(fileHandle, dataLine);
+
+FileClose(fileHandle);
+return true;
+}
+}; // SYSTEMATIC FIX - Close CMarketContextAnalyzer class
+*/
+
+#endif // ANALYSIS_MARKET_CONTEXT_MQH
 

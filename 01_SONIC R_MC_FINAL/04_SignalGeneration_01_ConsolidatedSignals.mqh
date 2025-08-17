@@ -454,7 +454,11 @@ public:
         m_adaptiveFilteringEnabled = true;
         m_dynamicConfluenceThreshold = 0.75;
         m_signalCooldownPeriod = 300; // 5 minutes
-{
+    } // SYSTEMATIC FIX - Close constructor
+
+    // SYSTEMATIC FIX - Move TradingSignal generation to separate method
+    TradingSignal GenerateSignal(string symbol = "", ENUM_TIMEFRAMES timeframe = PERIOD_CURRENT, ENUM_TRADING_SCENARIO scenario = SCENARIO_BASIC)
+    {
     TradingSignal result;
     result.type = SIGNAL_NONE;
     result.side = ORDER_TYPE_BUY;
@@ -1733,3 +1737,5 @@ ENUM_SIGNAL_TYPE GenerateBasicSignal()
     // This provides minimal functionality for Phase 2 baseline
     return SIGNAL_NONE;
 }
+
+#endif // SIGNAL_CONSOLIDATED_MQH
