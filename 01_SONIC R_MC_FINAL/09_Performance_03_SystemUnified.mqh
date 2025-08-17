@@ -7,6 +7,7 @@
 #define PERFORMANCE_SYSTEM_UNIFIED_MQH
 
 #include "01_Core_07_CommonStructures.mqh"
+#include "01_Core_22_SonicEnums.mqh"               // SYSTEMATIC FIX - Added for PerformanceRatingToString
 #include "01_Core_09_SharedDataStructures.mqh"
 // #include "01_Core_16_EnumHelpers.mqh" // Already included in MasterIncludes
 // SYSTEMATIC FIX - Use correct ErrorHandler file

@@ -110,20 +110,20 @@ else return 20; // Poor location
 return 50; // Should not happen
 }
 
-int CalculateVolumeProfileScore(OrderBlock &ob)
+double CalculateVolumeProfileScore(OrderBlock &ob)
 {
 // TODO: Requires integration with a Volume Profile indicator.
 // Check if the OB overlaps with a High Volume Node (HVN) or Point of Control (POC).
-return 50; // Placeholder
+return 50.0; // Placeholder - SYSTEMATIC FIX: Changed to double
 }
 
-int CalculateConfluenceScore(OrderBlock &ob)
+double CalculateConfluenceScore(OrderBlock &ob)
 {
 // TODO: Check for confluence with other factors like:
 // - MTF High/Low levels
 // - Major round numbers
 // - Other indicator signals (e.g., moving averages)
-return 50; // Placeholder
+return 50.0; // Placeholder - SYSTEMATIC FIX: Changed to double
 }
 
 public:

@@ -5,6 +5,7 @@
 #include "01_Core_14_CoreEnums.mqh"
 #include "03_MarketAnalysis_27_RegimeDetector.mqh"
 #include "03_MarketAnalysis_21_AssetDNA.mqh"
+#include "07_AI_ML_03_NeuralNetworkConfirmation.mqh"  // SYSTEMATIC FIX - Added for GetVolatilityScore
 
 class CScenarioEngine {
 private:

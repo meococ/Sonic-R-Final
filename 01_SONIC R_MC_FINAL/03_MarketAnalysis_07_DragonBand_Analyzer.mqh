@@ -8,6 +8,7 @@
 
 #include "01_Core_22_SonicEnums.mqh"
 #include "01_Core_07_CommonStructures.mqh"
+#include "01_Core_17_Utils.mqh"              // SYSTEMATIC FIX - Added for TrendDirectionToString
 #include "02_DataProviders_05_IndicatorManager.mqh"
 #include "01_Core_21_ErrorConstants_Clean.mqh"
 
@@ -575,7 +576,7 @@ score = 0.0;
 *         - Current Dragon state information
 * 
 * @details Report format example:
-*          "?? Unified Dragon | Angle: +3.2° | Trend: BULLISH | 
+*          "?? Unified Dragon | Angle: +3.2ï¿½ | Trend: BULLISH | 
 *           Squeeze: YES (85%) | MTF: 0.742 | Score: 0.867 | Confidence: 91%"
 * 
 * @note This method provides human-readable summary of complex analysis data.
@@ -602,7 +603,7 @@ score = 0.0;
 string GetDetailedReport()
 {
 return StringFormat(
-"?? Unified Dragon | Angle: %.1f° | Trend: %s | Squeeze: %s (%.1f%%) | MTF: %.3f | Score: %.3f | Confidence: %.1f%%",
+"?? Unified Dragon | Angle: %.1fï¿½ | Trend: %s | Squeeze: %s (%.1f%%) | MTF: %.3f | Score: %.3f | Confidence: %.1f%%",
 dragonAngle,
 TrendDirectionToString(trendDirection),
 isDragonSqueeze ? "YES" : "NO",
@@ -644,7 +645,7 @@ return true;
 * 
 * @details Key Features:
 *          - Sonic R 3-EMA System: EMA 34 on HIGH, LOW, CLOSE + EMA 89 trend
-*          - Dragon Angle Calculation: Exact Sonic R formula with 2° threshold
+*          - Dragon Angle Calculation: Exact Sonic R formula with 2ï¿½ threshold
 *          - Squeeze Detection: Band contraction analysis for breakout signals
 *          - Multi-timeframe Support: H1(50%), M15(30%), M5(20%) weighting
 *          - Performance Optimization: Intelligent caching and bulk operations
@@ -719,7 +720,7 @@ double m_emaTrend89[];
 // Dragon configuration
 int m_dragonPeriod;                    // EMA period (default 34)
 int m_trendPeriod;                     // Trend EMA period (default 89)
-double m_angleThreshold;               // Minimum angle for trend (default 2.0°)
+double m_angleThreshold;               // Minimum angle for trend (default 2.0ï¿½)
 
 // Squeeze detection parameters
 double m_normalBandWidth;              // Average band width over 20 bars
@@ -1010,7 +1011,7 @@ return true;
 *         if(score > 0.75) {
 *             SUnifiedDragonData data = analyzer.GetCurrentData();
 *             Comment("Dragon Score: ", DoubleToString(score, 3),
-*                    "\nAngle: ", DoubleToString(data.dragonAngle, 1), "°",
+*                    "\nAngle: ", DoubleToString(data.dragonAngle, 1), "ï¿½",
 *                    "\nSqueeze: ", data.isDragonSqueeze ? "YES" : "NO");
 *         }
 *     }
@@ -1845,24 +1846,24 @@ return m_currentData.GetDetailedReport();
 * @return Dragon angle in degrees [-90.0 to +90.0]
 *         - Positive values: Upward trending Dragon
 *         - Negative values: Downward trending Dragon
-*         - Values > +5°: Strong bullish trend
-*         - Values < -5°: Strong bearish trend
-*         - Values between -2° to +2°: Sideways/weak trend
+*         - Values > +5ï¿½: Strong bullish trend
+*         - Values < -5ï¿½: Strong bearish trend
+*         - Values between -2ï¿½ to +2ï¿½: Sideways/weak trend
 * 
 * @details SONIC R EXACT ANGLE FORMULA:
 *          1. Calculate price change: deltaPrice = EMA[0] - EMA[lookback]
 *          2. Calculate time change: deltaBars = lookback bars
 *          3. Calculate slope: slope = deltaPrice / deltaBars
 *          4. Convert to visual angle using screen pixels scaling
-*          5. Apply arctangent function: angle = atan(slope × scale)
-*          6. Convert radians to degrees: angle × (180/p)
-*          7. Clamp result between -90° and +90°
+*          5. Apply arctangent function: angle = atan(slope ï¿½ scale)
+*          6. Convert radians to degrees: angle ï¿½ (180/p)
+*          7. Clamp result between -90ï¿½ and +90ï¿½
 * 
 * @note SONIC R SCALING FACTORS (Critical for accuracy):
 *       - Pixels per bar: 5.0 (standard chart scaling)
 *       - Pixels per price unit: 100,000 (for major pairs)
 *       - These values ensure angles match visual chart appearance
-*       - Angle > 2° threshold indicates significant trend strength
+*       - Angle > 2ï¿½ threshold indicates significant trend strength
 * 
 * @performance Execution time: <0.5ms (optimized calculation)
 * 
@@ -1877,7 +1878,7 @@ return m_currentData.GetDetailedReport();
 * // ... populate emaClose array ...
 * double angle = CalculatePerfectDragonAngle(emaClose, 4);
 * if(MathAbs(angle) > 5.0) {
-*     Print("Strong Dragon trend detected: ", angle, "°");
+*     Print("Strong Dragon trend detected: ", angle, "ï¿½");
 * }
 * @endcode
 */

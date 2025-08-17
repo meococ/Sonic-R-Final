@@ -8,6 +8,7 @@
 
 #include "01_Core_22_SonicEnums.mqh"
 #include "01_Core_07_CommonStructures.mqh"
+#include "01_Core_17_Utils.mqh"              // SYSTEMATIC FIX - Added for TrendDirectionToString
 #include "02_DataProviders_05_IndicatorManager.mqh"
 
 //+------------------------------------------------------------------+
@@ -87,7 +88,7 @@ confidence = 0.0;
 string GetDetailedReport()
 {
 return StringFormat(
-"?? Dragon Analysis | Angle: %.1f° | Trend: %s | Squeeze: %s (%.1f%%) | Breakout: %s",
+"?? Dragon Analysis | Angle: %.1fï¿½ | Trend: %s | Squeeze: %s (%.1f%%) | Breakout: %s",
 dragonAngle,
 TrendDirectionToString(trendDirection),
 isDragonSqueeze ? "YES" : "NO",
@@ -118,7 +119,7 @@ double m_emaTrend89[];
 // Dragon Parameters
 int m_dragonPeriod;                    // EMA period (default 34)
 int m_trendPeriod;                     // Trend EMA period (default 89)
-double m_angleThreshold;               // Minimum angle for trend (default 2.0°)
+double m_angleThreshold;               // Minimum angle for trend (default 2.0ï¿½)
 
 // ?? SQUEEZE DETECTION PARAMETERS (Boss's missing feature)
 double m_normalBandWidth;              // Average band width over 20 bars
@@ -460,9 +461,9 @@ double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
 double midpoint = (m_emaHigh[0] + m_emaLow[0]) / 2.0;
 
 if(currentPrice > midpoint && m_currentAnalysis.dragonAngle > 0) {
-Print("?? BULLISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "°");
+Print("?? BULLISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "ï¿½");
 } else if(currentPrice < midpoint && m_currentAnalysis.dragonAngle < 0) {
-Print("?? BEARISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "°");
+Print("?? BEARISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "ï¿½");
 }
 }
 }
@@ -531,7 +532,7 @@ m_currentAnalysis.pullbackQuality = pullbackQuality;
 //+------------------------------------------------------------------+
 bool IsPullbackZoneEnhanced()
 {
-    // Tính toán v? trí giá trong d?i Dragon
+    // Tï¿½nh toï¿½n v? trï¿½ giï¿½ trong d?i Dragon
     double dragonWidth = m_currentAnalysis.emaHigh - m_currentAnalysis.emaLow;
     if(dragonWidth <= 0) {
         Print("?? [PHASE 2] Dragon width invalid, fallback: no pullback zone");
@@ -541,7 +542,7 @@ bool IsPullbackZoneEnhanced()
     double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
     double pricePosition = (currentPrice - m_currentAnalysis.emaLow) / dragonWidth;
     
-    // Xác d?nh pullback zone (20%-40% ho?c 60%-80%) theo review.txt
+    // Xï¿½c d?nh pullback zone (20%-40% ho?c 60%-80%) theo review.txt
     bool inPullbackZone = ((pricePosition >= 0.2 && pricePosition <= 0.4) ||
                           (pricePosition >= 0.6 && pricePosition <= 0.8));
     
@@ -551,7 +552,7 @@ bool IsPullbackZoneEnhanced()
         return true;
     }
     
-    // Log lý do vào l?nh theo yêu c?u review.txt
+    // Log lï¿½ do vï¿½o l?nh theo yï¿½u c?u review.txt
     if(inPullbackZone) {
         Print("? [PHASE 2] Pullback zone detected at ", DoubleToString(pricePosition*100, 1), "% of Dragon Band");
     }
