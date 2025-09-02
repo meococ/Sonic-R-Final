@@ -10,7 +10,7 @@
 #include "01_Core_07_CommonStructures.mqh"
 
 //+------------------------------------------------------------------+
-//| ?? CONFLICT TYPES - PHÂN LO?I XUNG Ð?T                          |
+//| ?? CONFLICT TYPES - PHï¿½N LO?I XUNG ï¿½?T                          |
 //+------------------------------------------------------------------+
 // ENUM_CONFLICT_TYPE moved to SonicEnums.mqh for proper include order
 
@@ -25,14 +25,14 @@ struct SConflictData
    ENUM_RESOLUTION_STRATEGY resolutionStrategy; // Chi?n lu?c gi?i quy?t
    
    // Conflict details
-   string conflictDescription;                // Mô t? xung d?t
-   double conflictSeverity;                   // M?c d? nghiêm tr?ng (0-1)
+   string conflictDescription;                // Mï¿½ t? xung d?t
+   double conflictSeverity;                   // M?c d? nghiï¿½m tr?ng (0-1)
    int conflictingComponents;                 // S? component xung d?t
    
    // Resolution details
    ENUM_SIGNAL_TYPE resolvedSignal;           // Signal sau khi gi?i quy?t
-   double resolutionConfidence;               // Ð? tin c?y gi?i quy?t
-   string resolutionReason;                   // Lý do gi?i quy?t
+   double resolutionConfidence;               // ï¿½? tin c?y gi?i quy?t
+   string resolutionReason;                   // Lï¿½ do gi?i quy?t
    
    // Component votes
    ENUM_SIGNAL_TYPE dragonVote;               // Vote c?a Dragon Band
@@ -79,13 +79,13 @@ class CIntelligentConflictResolver
 {
 private:
    // Configuration
-   double m_conflictThreshold;                // Ngu?ng phát hi?n xung d?t
-   double m_severityThreshold;                // Ngu?ng nghiêm tr?ng
+   double m_conflictThreshold;                // Ngu?ng phï¿½t hi?n xung d?t
+   double m_severityThreshold;                // Ngu?ng nghiï¿½m tr?ng
    double m_abstainThreshold;                 // Ngu?ng t? ch?i giao d?ch
    
    // Historical performance tracking
-   double m_componentReliability[5];          // Ð? tin c?y t?ng component
-   int m_componentSuccessCount[5];            // S? l?n thành công
+   double m_componentReliability[5];          // ï¿½? tin c?y t?ng component
+   int m_componentSuccessCount[5];            // S? l?n thï¿½nh cï¿½ng
    int m_componentTotalCount[5];              // T?ng s? l?n
    
    // Market context weights
@@ -95,8 +95,17 @@ private:
    
    // Conflict statistics
    int m_totalConflicts;                      // T?ng s? xung d?t
-   int m_resolvedConflicts;                   // S? xung d?t dã gi?i quy?t
+   int m_resolvedConflicts;                   // S? xung d?t dï¿½ gi?i quy?t
    int m_abstainedConflicts;                  // S? l?n t? ch?i
+   
+   // Forward declarations for private methods
+   bool DetectConflict(SConflictData& conflict);
+   ENUM_SIGNAL_TYPE GetMajorityVote(const SConflictData& conflict);
+   void AnalyzeConflictSeverity(SConflictData& conflict);
+   void ChooseResolutionStrategy(SConflictData& conflict, ENUM_MARKET_REGIME marketRegime);
+   void ApplyResolutionStrategy(SConflictData& conflict, ENUM_MARKET_REGIME marketRegime);
+   bool ValidateResolution(SConflictData& conflict);
+   void InitializeMarketWeights();
    
 public:
    CIntelligentConflictResolver()
@@ -236,7 +245,7 @@ public:
    }
    
    //+------------------------------------------------------------------+
-   //| ?? DETECT CONFLICT - PHÁT HI?N XUNG Ð?T                       |
+   //| ?? DETECT CONFLICT - PHï¿½T HI?N XUNG ï¿½?T                       |
    //+------------------------------------------------------------------+
    bool DetectConflict(SConflictData& conflict)
    {
@@ -278,7 +287,7 @@ public:
    }
    
    //+------------------------------------------------------------------+
-   //| ?? ANALYZE CONFLICT SEVERITY - PHÂN TÍCH M?C Ð? NGHIÊM TR?NG  |
+   //| ?? ANALYZE CONFLICT SEVERITY - PHï¿½N Tï¿½CH M?C ï¿½? NGHIï¿½M TR?NG  |
    //+------------------------------------------------------------------+
    void AnalyzeConflictSeverity(SConflictData& conflict)
    {
@@ -347,7 +356,7 @@ public:
    }
    
    //+------------------------------------------------------------------+
-   //| ?? APPLY RESOLUTION STRATEGY - ÁP D?NG CHI?N LU?C GI?I QUY?T   |
+   //| ?? APPLY RESOLUTION STRATEGY - ï¿½P D?NG CHI?N LU?C GI?I QUY?T   |
    //+------------------------------------------------------------------+
    void ApplyResolutionStrategy(SConflictData& conflict, ENUM_MARKET_REGIME marketRegime)
    {
@@ -425,7 +434,7 @@ public:
    }
    
    //+------------------------------------------------------------------+
-   //| ?? RESOLVE BY RELIABILITY - GI?I QUY?T THEO Ð? TIN C?Y         |
+   //| ?? RESOLVE BY RELIABILITY - GI?I QUY?T THEO ï¿½? TIN C?Y         |
    //+------------------------------------------------------------------+
    void ResolveByReliability(SConflictData& conflict)
    {
