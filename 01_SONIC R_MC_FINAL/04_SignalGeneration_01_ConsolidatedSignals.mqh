@@ -7,13 +7,14 @@
 #include "02_DataProviders_05_IndicatorManager.mqh"
 
 // Forward declarations for Sonic basic gates (definitions included later via MasterIncludes)
+// Function declarations  
 bool Gate_SonicBasic_SessionSpread();
 bool Gate_SonicBasic_Regime();
 bool Gate_SonicBasic_MTF();
 bool Gate_SonicBasic_Wave();
 
 // Decide direction by EMA34 vs EMA89 on M15
-static ENUM_SIGNAL_TYPE __DirectionByEMAs()
+ENUM_SIGNAL_TYPE __DirectionByEMAs()
 {
     CUnifiedIndicatorManager* mgr = CUnifiedIndicatorManager::GetInstance();
     int h34 = mgr.GetEMAHandle(_Symbol, PERIOD_M15, 34, PRICE_CLOSE);

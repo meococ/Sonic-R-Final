@@ -266,7 +266,7 @@
     // Gradual enablement under feature guard to minimize compile cascades
     // Master Orchestrator disabled in lightweight build
     // #include "03_MarketAnalysis_08_MasterOrchestrator.mqh"
-  #if defined(SONIC_ALLOW_HEAVY) && defined(ENABLE_SMC_ANALYSIS_FILES)
+  #ifdef SONIC_ALLOW_HEAVY
         // Heavy SMC internals only — keep Master Orchestrator disabled unless explicitly enabled
         //#include "03_MarketAnalysis_08_MasterOrchestrator.mqh"
 		//#include "03_MarketAnalysis_09_ConsolidatedAnalysis.mqh"
@@ -296,7 +296,7 @@
   #include "03_MarketAnalysis_21_AssetDNA.mqh"
 #endif
 
-  #if defined(FEATURE_MASTER_ORCHESTRATOR) && defined(SONIC_ALLOW_HEAVY)
+  #ifdef FEATURE_MASTER_ORCHESTRATOR
     // Explicitly include Master Orchestrator when enabled in ORCH/SMC profiles only
     // #include "03_MarketAnalysis_08_MasterOrchestrator.mqh"
   #endif
@@ -323,7 +323,7 @@
 // #include "04_SignalGeneration_04_ScenarioConfig.mqh"         // Frozen by refactor
 #include "04_SignalGeneration_05_ConflictResolver.mqh"
 #include "04_SignalGeneration_06_DynamicWeightAdjuster.mqh"
-#if defined(FEATURE_SMC_INTEGRATION) && (FEATURE_SMC_INTEGRATION==1)
+#ifdef FEATURE_SMC_INTEGRATION
   #include "04_SignalGeneration_08_SMC_Consolidated.mqh"
   #include "04_SignalGeneration_09_SMC_Validator.mqh"
   #include "04_SignalGeneration_10_SMC_Utils.mqh"

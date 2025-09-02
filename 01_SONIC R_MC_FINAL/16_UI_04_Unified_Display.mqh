@@ -8,7 +8,7 @@
 #include "01_Core_14_CoreEnums.mqh"
 #include "01_Core_00_Inputs.mqh"
 // #include "Data_Providers.mqh" // removed facade; individual modules already included via MasterIncludes
-#if defined(FEATURE_CONFLUENCE_ENGINE) && (FEATURE_CONFLUENCE_ENGINE==1)
+#ifdef FEATURE_CONFLUENCE_ENGINE
   #include "04_SignalGeneration_02_ConfluenceEngine.mqh"
 #else
   // Lightweight stub so UI compiles when ConfluenceEngine is disabled

@@ -13,9 +13,9 @@ extern CTradeGate* g_tradeGate;
 
 // Forward declaration for optional signal generator tracker
 // Optional signal generator (guarded)
-#define HAVE_SIGNAL_GENERATOR 0
+//#define HAVE_SIGNAL_GENERATOR 0
 class CSignalGenerator;
-#if HAVE_SIGNAL_GENERATOR
+#ifdef HAVE_SIGNAL_GENERATOR
 extern CSignalGenerator* g_SignalGenerator;
 #endif
 
@@ -364,11 +364,11 @@ namespace TradeExecution
             g_daily_trades++;
             g_tradesThisBar++;
             if(g_tradeGate != NULL) g_tradeGate->OnPositionOpen();
-            #if HAVE_SIGNAL_GENERATOR
+            #ifdef HAVE_SIGNAL_GENERATOR
             if(g_SignalGenerator != NULL) g_SignalGenerator->UpdateSignalResult(true);
             #endif
         } else {
-            #if HAVE_SIGNAL_GENERATOR
+            #ifdef HAVE_SIGNAL_GENERATOR
             if(g_SignalGenerator != NULL) g_SignalGenerator->UpdateSignalResult(false);
             #endif
             // Auto-retry when stops invalid: widen to FreezeLevel + buffer and retry once
@@ -392,7 +392,7 @@ namespace TradeExecution
                           " | Price: ", DoubleToString(ask, _Digits));
                     g_daily_trades++; g_tradesThisBar++;
                     if(g_tradeGate != NULL) g_tradeGate->OnPositionOpen();
-                    #if HAVE_SIGNAL_GENERATOR
+                    #ifdef HAVE_SIGNAL_GENERATOR
                     if(g_SignalGenerator != NULL) g_SignalGenerator->UpdateSignalResult(true);
                     #endif
                     return true;
@@ -410,7 +410,7 @@ namespace TradeExecution
                     if(s3 && (r3.retcode==TRADE_RETCODE_DONE || r3.retcode==TRADE_RETCODE_PLACED)){
                         Stat_OrderFilled();
                         g_daily_trades++; g_tradesThisBar++; if(g_tradeGate!=NULL) g_tradeGate->OnPositionOpen();
-                        #if HAVE_SIGNAL_GENERATOR
+                        #ifdef HAVE_SIGNAL_GENERATOR
                         if(g_SignalGenerator!=NULL) g_SignalGenerator->UpdateSignalResult(true);
                         #endif
                         return true;
@@ -531,7 +531,7 @@ namespace TradeExecution
                     Stat_OrderFilled();
                     Print("… [TRADE] SELL executed (retry) | Ticket: ", result2.order, " | Size: ", DoubleToString(request.volume,2), " | Price: ", DoubleToString(request.price,_Digits));
                     g_daily_trades++; g_tradesThisBar++; if(g_tradeGate!=NULL) g_tradeGate->OnPositionOpen();
-                    #if HAVE_SIGNAL_GENERATOR
+                    #ifdef HAVE_SIGNAL_GENERATOR
                     if(g_SignalGenerator!=NULL) g_SignalGenerator->UpdateSignalResult(true);
                     #endif
                     return true;
@@ -551,7 +551,7 @@ namespace TradeExecution
                     if(s3 && (r3.retcode==TRADE_RETCODE_DONE || r3.retcode==TRADE_RETCODE_PLACED)){
                         Stat_OrderFilled();
                         g_daily_trades++; g_tradesThisBar++; if(g_tradeGate!=NULL) g_tradeGate->OnPositionOpen();
-                        #if HAVE_SIGNAL_GENERATOR
+                        #ifdef HAVE_SIGNAL_GENERATOR
                         if(g_SignalGenerator!=NULL) g_SignalGenerator->UpdateSignalResult(true);
                         #endif
                         return true;
@@ -560,7 +560,7 @@ namespace TradeExecution
                     }
                 }
             }
-            #if HAVE_SIGNAL_GENERATOR
+            #ifdef HAVE_SIGNAL_GENERATOR
             if(g_SignalGenerator!=NULL) g_SignalGenerator->UpdateSignalResult(false);
             #endif
             return false;
@@ -569,7 +569,7 @@ namespace TradeExecution
         // success first-shot
         Print("âœ… [TRADE] SELL executed | Ticket: ", result.order, " | Size: ", DoubleToString(request.volume,2), " | Price: ", DoubleToString(request.price,_Digits));
     g_daily_trades++; g_tradesThisBar++; if(g_tradeGate!=NULL) g_tradeGate->OnPositionOpen();
-    #if HAVE_SIGNAL_GENERATOR
+    #ifdef HAVE_SIGNAL_GENERATOR
     if(g_SignalGenerator!=NULL) g_SignalGenerator->UpdateSignalResult(true);
     #endif
             return true;
