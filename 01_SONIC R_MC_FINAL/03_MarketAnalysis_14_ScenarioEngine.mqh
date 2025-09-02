@@ -3,17 +3,24 @@
 
 #include "01_Core_22_SonicEnums.mqh"
 #include "01_Core_14_CoreEnums.mqh"
-#include "03_MarketAnalysis_27_RegimeDetector.mqh"
-#include "03_MarketAnalysis_21_AssetDNA.mqh"
+#ifdef ENABLE_SMC_ANALYSIS_FILES
+  #include "03_MarketAnalysis_27_RegimeDetector.mqh"
+  #include "03_MarketAnalysis_21_AssetDNA.mqh"
+#else
+  // Lightweight stubs to keep compile clean when heavy SMC files are disabled
+  class CMarketRegimeDetector { public: bool Initialize(){ return true; } ENUM_MARKET_REGIME DetectCurrentRegime(){ return REGIME_UNKNOWN; } };
+  class CAssetDNASystem      { public: bool Initialize(){ return true; } };
+#endif
 
 class CScenarioEngine {
 private:
     ENUM_TRADING_SCENARIO m_currentScenario;
     CMarketRegimeDetector m_regimeDetector;
-    CAssetDNASystem m_assetDNA;
+    CAssetDNASystem       m_assetDNA;
+    bool                  m_adnaNeutral;
 
 public:
-    CScenarioEngine() : m_currentScenario(SCENARIO_SONIC_R_BASIC) {
+    CScenarioEngine() : m_currentScenario(SCENARIO_SONIC_R_BASIC), m_adnaNeutral(false) {
         m_regimeDetector.Initialize();
         // AssetDNA requires CEaContext* to Initialize; skip here and use internal metrics
     }
@@ -54,8 +61,10 @@ public:
     }
 
     ENUM_TRADING_SCENARIO GetCurrentScenario() { return m_currentScenario; }
+
+    // Degrade gracefully when AssetDNA not available
+    void SetADNANeutral(){ m_adnaNeutral = true; }
+    bool IsADNANeutral() const { return m_adnaNeutral; }
 };
 
 #endif
-
-

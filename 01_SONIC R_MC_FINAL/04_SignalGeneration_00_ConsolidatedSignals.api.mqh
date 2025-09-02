@@ -10,4 +10,8 @@
 #define FEATURE_SONICR_BASIC   1
 #define FEATURE_SONICR_VPSRA   1
 #define FEATURE_SCOUT          1
+
+// Minimal stub for signal generator result tracking referenced by Engine
+class CSignalGenerator { public: void UpdateSignalResult(bool success) { (void)success; } };
+CSignalGenerator* g_SignalGenerator = NULL;
 #endif // CONSOLIDATED_SIGNALS_API_MQH 

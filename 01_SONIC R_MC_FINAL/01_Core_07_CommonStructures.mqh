@@ -9,6 +9,12 @@
 #include "01_Core_14_CoreEnums.mqh"
 #include "01_Core_22_SonicEnums.mqh"
 
+// Wave pivot stash (defined in 01_Core_09_SharedDataStructures.mqh)
+extern bool     g_haveLastWavePivots;
+extern double   g_lastWaveLeg2Price;
+extern int      g_lastWaveDir;
+extern datetime g_lastWaveBarTime;
+
 //+------------------------------------------------------------------+
 //| BASIC SIGNAL DATA STRUCTURE                                      |
 //+------------------------------------------------------------------+

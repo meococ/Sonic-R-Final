@@ -10,7 +10,7 @@
 #define TRADING_03_TRADE_GATE_MQH
 
 #include "01_Core_14_CoreEnums.mqh"
-#include "01_Core_07_CommonStructures.mqh"
+#include "01_Core_ErrorHandler.mqh"
 
 //+------------------------------------------------------------------+
 //| TRADE GATE CONFIGURATION STRUCTURE                              |
@@ -59,6 +59,7 @@ private:
     int m_currentPositions;              // Current positions
     bool m_tradingEnabled;               // Trading enabled flag
     datetime m_lastUpdate;               // Last update time
+    string m_lastRejectionReason;        // Last rejection reason
     
 public:
     CTradeGate()
@@ -69,6 +70,7 @@ public:
         m_currentPositions = 0;
         m_tradingEnabled = true;
         m_lastUpdate = 0;
+        m_lastRejectionReason = "";
     }
     
     ~CTradeGate() {}
@@ -82,13 +84,50 @@ public:
     bool IsTradingAllowed()
     {
         UpdateStatus();
-        
-        if(!m_config.enableTrading) return false;
-        if(!m_tradingEnabled) return false;
-        if(m_currentPositions >= m_config.maxPositions) return false;
-        if(m_dailyPnL <= -m_config.maxDailyLoss) return false;
-        if(m_maxDrawdown >= m_config.maxDrawdown) return false;
-        
+
+        if(!m_config.enableTrading) {
+            m_lastRejectionReason = "Trading disabled";
+            return false;
+        }
+        if(!m_tradingEnabled) {
+            m_lastRejectionReason = "Trading manually disabled";
+            return false;
+        }
+        if(m_currentPositions >= m_config.maxPositions) {
+            m_lastRejectionReason = "Maximum positions reached";
+            return false;
+        }
+        if(m_dailyPnL <= -m_config.maxDailyLoss) {
+            m_lastRejectionReason = "Daily loss limit exceeded";
+            return false;
+        }
+        if(m_maxDrawdown >= m_config.maxDrawdown) {
+            m_lastRejectionReason = "Maximum drawdown exceeded";
+            return false;
+        }
+
+        m_lastRejectionReason = "";
+        return true;
+    }
+
+    // Overloaded method for TradingSignal
+    bool IsTradeAllowed(const TradingSignal& signal)
+    {
+        if(!IsTradingAllowed()) {
+            return false;
+        }
+
+        // Additional signal-specific checks
+        if(signal.type == SIGNAL_NONE) {
+            m_lastRejectionReason = "Invalid signal type";
+            return false;
+        }
+
+        if(signal.confidence <= 0) {
+            m_lastRejectionReason = "Invalid signal confidence";
+            return false;
+        }
+
         return true;
     }
     
@@ -125,6 +164,7 @@ public:
     double GetMaxDrawdown() const { return m_maxDrawdown; }
     int GetCurrentPositions() const { return m_currentPositions; }
     bool IsTradingEnabled() const { return m_tradingEnabled; }
+    string GetLastRejectionReason() const { return m_lastRejectionReason; }
     
 private:
     void UpdateDailyPnL()
@@ -160,8 +200,8 @@ private:
 //+------------------------------------------------------------------+
 //| GLOBAL INSTANCES                                                 |
 //+------------------------------------------------------------------+
-// SYSTEMATIC FIX - Declare g_tradeGate here since it's used in this file
-CTradeGate* g_tradeGate;
+// SYSTEMATIC FIX - Use extern here; the definition lives in 00_Main_EA_SonicR.mq5
+extern CTradeGate* g_tradeGate;
 // g_errorHandler is declared in 01_Core_ErrorHandler.mqh
 
 //+------------------------------------------------------------------+

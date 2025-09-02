@@ -239,7 +239,7 @@ bool                    CheckBlackSwanTriggers() {
 if(m_blackSwanDetector == NULL) return false;
 
 if(m_blackSwanDetector.IsBlackSwanActive()) {
-BlackSwanEvent currentEvent = m_blackSwanDetector.GetCurrentEvent();
+BlackSwanEvent currentEvent; { BlackSwanEvent _e; _e = m_blackSwanDetector.GetCurrentEvent(); currentEvent.severity=_e.severity; currentEvent.eventName=_e.eventName; }
 
 ENUM_CIRCUIT_BREAKER_LEVEL level = CB_LEVEL_WARNING;
 if(currentEvent.severity > 0.7) level = CB_LEVEL_EMERGENCY;

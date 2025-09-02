@@ -3,6 +3,9 @@
 //|                        Smart Money Concepts Visual Overlay System |
 //|                                   Professional Chart Visualization |
 //+------------------------------------------------------------------+
+#ifndef UI_SMC_OVERLAY_MQH
+#define UI_SMC_OVERLAY_MQH
+#include "01_Core_00_Inputs.mqh"
 #property copyright "Sonic R MC EA"
 #property version   "2.0"
 #property strict
@@ -240,16 +243,19 @@ public:
         ObjectSetInteger(0, objName, OBJPROP_WIDTH, 3);
         ObjectSetInteger(0, objName, OBJPROP_BACK, false);
         
-        // Add structure label
-        string structureText = StringFormat("%s %s", 
-                              isBullish ? "?" : "?", structureType);
+    // Add structure label (clear text)
+    string structureText = StringFormat("%s %s", structureType, (isBullish ? "BULL" : "BEAR"));
         string labelName = objName + "_Label";
         
-        if(ObjectCreate(0, labelName, OBJ_TEXT, 0, time, 
-                       price + (isBullish ? 10 : -10) * _Point)) {
+    double pip = ((_Digits==3 || _Digits==5) ? (10*_Point) : _Point);
+    int barIndex = iBarShift(_Symbol, PERIOD_CURRENT, time, true);
+    double dirOffset = (isBullish ? 1.0 : -1.0);
+    double altOffset = (InpOverlayAlternateBarLabels && (barIndex % 2 == 1) ? 1.5 : 1.0);
+    double yOffset = dirOffset * altOffset * MathMax(1, InpOverlayLabelOffsetPips) * pip;
+    if(ObjectCreate(0, labelName, OBJ_TEXT, 0, time, price + yOffset)) {
             ObjectSetString(0, labelName, OBJPROP_TEXT, structureText);
             ObjectSetInteger(0, labelName, OBJPROP_COLOR, arrowColor);
-            ObjectSetInteger(0, labelName, OBJPROP_FONTSIZE, 9);
+            ObjectSetInteger(0, labelName, OBJPROP_FONTSIZE, 10);
             ObjectSetString(0, labelName, OBJPROP_FONT, "Arial Bold");
             ObjectSetInteger(0, labelName, OBJPROP_ANCHOR, ANCHOR_CENTER);
         }
@@ -288,15 +294,15 @@ public:
         ObjectSetInteger(0, objName, OBJPROP_BACK, true);
         ObjectSetInteger(0, objName, OBJPROP_FILL, true);
         
-        // Add FVG info label
-        string fvgText = StringFormat("FVG %s %.0f%% filled", 
-                        isBullish ? "?" : "?", fillPercentage * 100);
+    // Add FVG info label (clear text)
+    string fvgText = StringFormat("FVG %s %.0f%%", 
+            isBullish ? "BULL" : "BEAR", fillPercentage * 100);
         string labelName = objName + "_Label";
         
-        if(ObjectCreate(0, labelName, OBJ_TEXT, 0, startTime, (high + low) / 2)) {
+    if(ObjectCreate(0, labelName, OBJ_TEXT, 0, startTime, (high + low) / 2)) {
             ObjectSetString(0, labelName, OBJPROP_TEXT, fvgText);
             ObjectSetInteger(0, labelName, OBJPROP_COLOR, m_theme.FVG_Border);
-            ObjectSetInteger(0, labelName, OBJPROP_FONTSIZE, 7);
+            ObjectSetInteger(0, labelName, OBJPROP_FONTSIZE, 9);
             ObjectSetString(0, labelName, OBJPROP_FONT, "Arial");
             ObjectSetInteger(0, labelName, OBJPROP_ANCHOR, ANCHOR_CENTER);
         }
@@ -329,10 +335,10 @@ public:
     
     void RemoveAllObjects() {
         ObjectsDeleteAll(0, m_prefix);
-        ArrayInitialize(m_orderBlockObjects, "");
-        ArrayInitialize(m_liquidityObjects, "");
-        ArrayInitialize(m_structureObjects, "");
-        ArrayInitialize(m_fvgObjects, "");
+        for(int i=0;i<ArraySize(m_orderBlockObjects);i++) m_orderBlockObjects[i] = "";
+        for(int i=0;i<ArraySize(m_liquidityObjects);i++) m_liquidityObjects[i] = "";
+        for(int i=0;i<ArraySize(m_structureObjects);i++) m_structureObjects[i] = "";
+        for(int i=0;i<ArraySize(m_fvgObjects);i++) m_fvgObjects[i] = "";
         m_objectCount = 0;
         Print("?? All SMC overlay objects removed");
     }
@@ -380,8 +386,11 @@ private:
 //| ?? GLOBAL SMC OVERLAY INSTANCE                                   |
 //+------------------------------------------------------------------+
 // SYSTEMATIC FIX - MQL5 global pointers cannot be initialized with assignment
-CSMCOverlayManager* g_SMCOverlay;
+CSMCOverlayManager* g_SMCOverlay = NULL;
 
+//+------------------------------------------------------------------+
+//| ?? SMC OVERLAY HELPER FUNCTIONS                                   |
+//+------------------------------------------------------------------+
 // Helper functions for easy access
 void SMC_DrawOrderBlock(double high, double low, datetime time, bool bullish, double strength = 0.8) {
     if(g_SMCOverlay != NULL) g_SMCOverlay.DrawOrderBlock(high, low, time, bullish, strength);
@@ -398,3 +407,5 @@ void SMC_DrawStructure(double price, datetime time, bool isBOS, bool bullish) {
 void SMC_DrawFVG(double high, double low, datetime time, bool bullish, double filled = 0.0) {
     if(g_SMCOverlay != NULL) g_SMCOverlay.DrawFairValueGap(high, low, time, bullish, filled);
 }
+
+#endif // SMC_OVERLAY_MANAGER_MQH

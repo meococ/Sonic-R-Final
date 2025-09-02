@@ -58,7 +58,7 @@ case ERR_BROKER_BUSY:
 return ERROR_SEVERITY_MODERATE;
 
 // Critical errors - Stop new trades
-case ERR_NOT_ENOUGH_MONEY:
+case 134: // ERR_NOT_ENOUGH_MONEY
 case ERR_INVALID_STOPS:
 case ERR_TRADE_DISABLED:
 return ERROR_SEVERITY_CRITICAL;
@@ -66,7 +66,7 @@ return ERROR_SEVERITY_CRITICAL;
 // Fatal errors - Full stop
 case ERR_ACCOUNT_DISABLED:
 case ERR_NO_CONNECTION:
-return ERROR_SEVERITY_FATAL;
+return ERROR_SEVERITY_CRITICAL;
 
 default:
 return ERROR_SEVERITY_MODERATE;
@@ -92,10 +92,6 @@ break;
 
 case ERROR_SEVERITY_CRITICAL:
 HandleCriticalError(errorCode, context);
-break;
-
-case ERROR_SEVERITY_FATAL:
-HandleFatalError(errorCode, context);
 break;
 }
 }

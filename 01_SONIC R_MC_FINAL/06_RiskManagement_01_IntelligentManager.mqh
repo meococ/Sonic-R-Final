@@ -103,6 +103,9 @@ void SetRiskPercent(double riskPercent) { m_riskPercent = riskPercent; }
 void SetRiskRewardRatio(double ratio) { m_riskRewardRatio = ratio; }
 void SetMaxDailyLoss(double maxLoss) { m_maxDailyLoss = maxLoss; }
 void SetMaxDailyTrades(int maxTrades) { m_maxDailyTrades = maxTrades; }
+
+// Virtual hook for AssetDNA-aware multiplier (default neutral)
+virtual double GetCombinedAssetRegimeMultiplier() { return 1.0; }
 };
 
 // CKellyCriterionSizer is defined in Risk_KellyCriterion.mqh - using that implementation
@@ -194,7 +197,7 @@ ArrayFree(m_stressTestResults); // ENHANCEMENT: Cleanup stress test results
 bool RunMonteCarloSimulation(double currentBalance, double positionSize)
 {
 if(!UpdateHistoricalReturns()) {
-::Print("[‚ö Ô∏ MONTE CARLO] Failed to update historical returns");
+::Print("[ÔøΩ ÔøΩ MONTE CARLO] Failed to update historical returns");
 return false;
 }
 
@@ -453,9 +456,9 @@ double CalculateKellyMCAveraged(double winRate, double avgWin, double avgLoss)
 // Run Monte Carlo simulations for Kelly Criterion
 for(int i = 0; i < m_kellySimulations; i++) {
 // Add noise to parameters to simulate uncertainty
-double noiseWinRate = winRate + (MathRand()/32767.0 - 0.5) * 0.1;  // ±5% noise
-double noiseAvgWin = avgWin + (MathRand()/32767.0 - 0.5) * avgWin * 0.2;  // ±10% noise
-double noiseAvgLoss = avgLoss + (MathRand()/32767.0 - 0.5) * avgLoss * 0.2; // ±10% noise
+double noiseWinRate = winRate + (MathRand()/32767.0 - 0.5) * 0.1;  // ÔøΩ5% noise
+double noiseAvgWin = avgWin + (MathRand()/32767.0 - 0.5) * avgWin * 0.2;  // ÔøΩ10% noise
+double noiseAvgLoss = avgLoss + (MathRand()/32767.0 - 0.5) * avgLoss * 0.2; // ÔøΩ10% noise
 
 // Ensure valid ranges
 noiseWinRate = MathMax(0.1, MathMin(0.9, noiseWinRate));
@@ -660,7 +663,7 @@ return -totalExposure * 0.05 * targetCorrelation;
 // Simulate random stress scenario
 double SimulateRandomStress(double accountBalance)
 {
-double randomShock = (MathRand() / 32767.0 - 0.5) * 0.4; // ±20% random shock
+double randomShock = (MathRand() / 32767.0 - 0.5) * 0.4; // ÔøΩ20% random shock
 return SimulateStressScenario(randomShock, 1.0, accountBalance);
 }
 
@@ -876,7 +879,7 @@ double symbolReturns[100];
 for(int s = 0; s < m_symbolCount; s++) {
 ArrayInitialize(symbolReturns, 0.0);
 if(!GetSymbolReturns(m_symbols[s], symbolReturns, lookbackPeriods)) {
-PrintFormat("[‚ö Ô∏è CORRELATION] Failed to get returns for %s", m_symbols[s]);
+PrintFormat("[ÔøΩ Ô∏è CORRELATION] Failed to get returns for %s", m_symbols[s]);
 return false;
 }
 // Store returns for later correlation calculation (simplified approach)
@@ -941,7 +944,7 @@ if(!GetSymbolReturns(m_symbols[i], existingReturns, 100)) continue;
 
 double correlation = CalculateCorrelation(newReturns, existingReturns, 100);
 if(MathAbs(correlation) > maxCorrelation) {
-PrintFormat("[‚ö Ô∏è CORRELATION] %s highly correlated with %s (%.2f)",
+PrintFormat("[ÔøΩ Ô∏è CORRELATION] %s highly correlated with %s (%.2f)",
 newSymbol, m_symbols[i], correlation);
 return false;
 }
@@ -1107,7 +1110,7 @@ return CRiskManager::CalculatePositionSize(stopLossPoints, accountBalance);
 
 // 1. Check real-time exposure limits before sizing
 if(!m_monteCarloAnalysis.CheckExposureLimit()) {
-::PrintFormat("[üõ°Ô∏ EXPOSURE BLOCK] Maximum exposure limit reached: %s%%", DoubleToString(m_monteCarloAnalysis.GetCurrentExposure() * 100, 2));
+::PrintFormat("[üõ°ÔøΩ EXPOSURE BLOCK] Maximum exposure limit reached: %s%%", DoubleToString(m_monteCarloAnalysis.GetCurrentExposure() * 100, 2));
 return 0.0; // Block trade due to exposure limit
 }
 
@@ -1150,7 +1153,7 @@ bool ShouldBlockTradeForRisk(double signalConfidence)
 {
 // 0. Check real-time exposure limits (NEW)
 if(!m_monteCarloAnalysis.CheckExposureLimit()) {
-::PrintFormat("[üõ°Ô∏ RISK BLOCK] Real-time exposure limit exceeded: %.2f%%", m_monteCarloAnalysis.GetCurrentExposure() * 100);
+::PrintFormat("[üõ°ÔøΩ RISK BLOCK] Real-time exposure limit exceeded: %.2f%%", m_monteCarloAnalysis.GetCurrentExposure() * 100);
 return true;
 }
 
@@ -1169,14 +1172,14 @@ return true;
 // 2.5. Check Kelly Criterion confidence (NEW)
 double kellyConfidence = m_monteCarloAnalysis.GetKellyConfidenceInterval();
 if(kellyConfidence < 0.3) { // Minimum 30% Kelly confidence
-::PrintFormat("[üõ°Ô∏ RISK BLOCK] Low Kelly confidence: %.1f%%", kellyConfidence * 100);
+::PrintFormat("[üõ°ÔøΩ RISK BLOCK] Low Kelly confidence: %.1f%%", kellyConfidence * 100);
 return true;
 }
 
 // 3. Check portfolio correlation risk
 double portfolioRisk = m_portfolioAnalysis.GetPortfolioRisk();
 if(portfolioRisk > 0.3) { // 30% portfolio risk limit
-::PrintFormat("[üõ°Ô∏ RISK BLOCK] High portfolio risk: %.1f%%", portfolioRisk * 100);
+::PrintFormat("[üõ°ÔøΩ RISK BLOCK] High portfolio risk: %.1f%%", portfolioRisk * 100);
 return true;
 }
 
@@ -1190,7 +1193,7 @@ return true;
 
 // 5. Check low confidence signals (Enhanced threshold)
 if(signalConfidence < 0.65) { // Increased from 60% to 65% for higher quality
-::PrintFormat("[üõ°Ô∏ RISK BLOCK] Signal confidence too low: %.1f%%", signalConfidence * 100);
+::PrintFormat("[üõ°ÔøΩ RISK BLOCK] Signal confidence too low: %.1f%%", signalConfidence * 100);
 return true;
 }
 
@@ -1385,7 +1388,7 @@ Trading in the Zone Principles:
 4. Proper risk allows you to think clearly
 */
 
-class CIntelligentRiskManager
+class CIntelligentRiskManager : public CRiskManager
 {
 private:
 #ifdef ENABLE_EQUITY_CURVE_ADJUSTMENT
@@ -1562,7 +1565,7 @@ void InitializeAssetDNASystem()
 m_assetDNA = new CAssetDNASystem();
 if(m_assetDNA != NULL) {
 // Initialize with current symbol and timeframe
-if(m_assetDNA.Initialize(NULL)) {
+if(m_assetDNA.Initialize(&g_Context)) {
 ::Print("? [ASSET DNA] Asset DNA System initialized successfully for ", _Symbol);
 
 // Generate initial asset report
@@ -1576,20 +1579,25 @@ m_assetDNA = NULL;
 } else {
 ::Print("? [ASSET DNA] Failed to create Asset DNA System instance");
 }
-#else
-::Print("[?? ASSET DNA] Asset DNA System disabled by feature toggle");
-m_assetDNA = NULL;
+#endif
+
+}
+
+//+------------------------------------------------------------------+
+//| PHASE 1: ASSET DNA CLEANUP                                       |
+//+------------------------------------------------------------------+
+void CleanupAssetDNASystem()
+{
+#ifdef ENABLE_MULTI_ASSET_RISK
+    if(m_assetDNA != NULL)
+    {
+        delete m_assetDNA;
+        m_assetDNA = NULL;
+        ::Print("[?? ASSET DNA] Asset DNA System cleaned up.");
+    }
 #endif
 }
 
-void CleanupAssetDNASystem()
-{
-if(m_assetDNA != NULL) {
-delete m_assetDNA;
-m_assetDNA = NULL;
-::Print("[?? ASSET DNA] Asset DNA System cleaned up");
-}
-}
 
 //+------------------------------------------------------------------+
 //| PHASE 1: ASSET-SPECIFIC RISK CALCULATION                       |
@@ -2380,7 +2388,7 @@ private:
 double m_equityHistory[100]; // Luu l?ch s? equity
 int m_historyCount;
 double CalculateCurveSlope() {
-// TÌnh d? d?c du?ng cong equity
+// TÔøΩnh d? d?c du?ng cong equity
 if(m_historyCount < 2) return 1.0;
 double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
 for(int i = 0; i < m_historyCount; i++) {
@@ -2402,7 +2410,7 @@ m_equityHistory[99] = currentEquity;
 }
 double GetRiskMultiplier() {
 double slope = CalculateCurveSlope();
-if(slope > 0.01) return 1.2; // Tang r?i ro n?u du?ng cong lÍn
+if(slope > 0.01) return 1.2; // Tang r?i ro n?u du?ng cong lÔøΩn
 else if(slope < -0.01) return 0.5; // Gi?m r?i ro n?u du?ng cong xu?ng
 return 1.0;
 }
@@ -2570,6 +2578,8 @@ return m_assetDNA.GetRegimeDescription(currentRegime);
 return "Asset DNA System not available";
 }
 #endif
+
+// (Removed) stray global helper here; see global function after class for cross-module access
 bool PositionSelectByIndex(int index) {
 ulong ticket = PositionGetTicket(index);
 return PositionSelectByTicket(ticket);
@@ -2800,29 +2810,29 @@ return AccountInfoDouble(ACCOUNT_BALANCE) * 1.01; // Assume 1% daily loss max
 //+------------------------------------------------------------------+
 double CalculateRiskMultiplier()
 {
-    // 1. TÌnh to·n d? cong equity curve
+    // 1. TÔøΩnh toÔøΩn d? cong equity curve
     double convexity = CalculateEquityCurveConvexity();
 
-    // 2. X·c d?nh h? s? di?u ch?nh theo review.txt
+    // 2. XÔøΩc d?nh h? s? di?u ch?nh theo review.txt
     if(convexity > 0.05) {
         Print("? [PHASE 3] Strong positive curve - increasing risk multiplier to 1.25");
-        return 1.25; // –u?ng cong m?nh - tang r?i ro
+        return 1.25; // ÔøΩu?ng cong m?nh - tang r?i ro
     }
     else if(convexity > 0.02) {
         Print("? [PHASE 3] Good positive curve - risk multiplier 1.1");
-        return 1.1;  // –u?ng cong t?t
+        return 1.1;  // ÔøΩu?ng cong t?t
     }
     else if(convexity > -0.02) {
         Print("?? [PHASE 3] Flat curve - neutral risk multiplier 1.0");
-        return 1.0;  // –u?ng th?ng
+        return 1.0;  // ÔøΩu?ng th?ng
     }
     else if(convexity > -0.05) {
         Print("?? [PHASE 3] Slight negative curve - reducing risk multiplier to 0.8");
-        return 0.8;  // –u?ng cong nh? tiÍu c?c
+        return 0.8;  // ÔøΩu?ng cong nh? tiÔøΩu c?c
     }
     else {
         Print("? [PHASE 3] Strong negative curve - reducing risk multiplier to 0.5");
-        return 0.5;  // –u?ng cong m?nh tiÍu c?c - gi?m r?i ro
+        return 0.5;  // ÔøΩu?ng cong m?nh tiÔøΩu c?c - gi?m r?i ro
     }
 }
 
@@ -2889,10 +2899,10 @@ double CalculatePositionSize()
     // Get base risk percentage
     double riskPercent = m_dynRisk.currentRisk;
 
-    // 3. –i?u ch?nh theo equity curve theo review.txt
+    // 3. ÔøΩi?u ch?nh theo equity curve theo review.txt
     double equityCurveAdjustment = CalculateRiskMultiplier();
 
-    // 4. TÌnh to·n position size cu?i c˘ng
+    // 4. TÔøΩnh toÔøΩn position size cu?i cÔøΩng
     double finalRisk = riskPercent * equityCurveAdjustment;
     finalRisk = MathMax(0.1, MathMin(finalRisk, m_maxRiskPerTrade));
 
@@ -2918,6 +2928,31 @@ double CalculatePositionSize()
 }
 
 };
+
+//+------------------------------------------------------------------+
+//| GLOBAL ACCESSOR: Combined Asset+Regime Multiplier                |
+//+------------------------------------------------------------------+
+// Forward declaration for global risk manager pointer
+extern CRiskManager* g_RiskManager;
+
+double GetGlobalCombinedAssetRegimeMultiplier()
+{
+#ifdef ENABLE_MULTI_ASSET_RISK
+    if(g_RiskManager != NULL)
+    {
+        // Use virtual hook; derived managers can override
+    double v = (*g_RiskManager).GetCombinedAssetRegimeMultiplier();
+        if(v > 0.0) return v;
+    }
+#endif
+    return 1.0;
+}
+
+//+------------------------------------------------------------------+
+//| GLOBAL VARIABLES DEFINITIONS                                     |
+//+------------------------------------------------------------------+
+// Define global variables that are declared as extern in other files
+CRiskManager* g_RiskManager = NULL;
 
 //+------------------------------------------------------------------+
 

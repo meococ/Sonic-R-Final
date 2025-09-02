@@ -30,13 +30,34 @@ enum ENUM_TRADING_SCENARIO
 };
 
 //+------------------------------------------------------------------+
+//| MINIMAL PVSRA PATTERN ENUM (used when analysis disabled)         |
+//+------------------------------------------------------------------+
+#ifdef HAVE_MINIMAL_PVSRA_ENUM
+#ifndef CORE_PVSRA_PATTERN_ENUM
+#define CORE_PVSRA_PATTERN_ENUM
+enum ENUM_PVSRA_PATTERN
+{
+    PVSRA_NONE = 0,
+    PVSRA_SPRING = 1,
+    PVSRA_UPTHRUST = 2,
+    PVSRA_SELLING_CLIMAX = 3,
+    PVSRA_AUTOMATIC_RALLY = 4,
+    PVSRA_SIGN_OF_STRENGTH = 5,
+    PVSRA_PATTERN_UNKNOWN = 999
+};
+#endif
+#endif
+
+//+------------------------------------------------------------------+
 //| SIGNAL TYPE ENUMERATIONS                                         |
 //+------------------------------------------------------------------+
+#ifndef ENUM_SIGNAL_TYPE_DEFINED
+#define ENUM_SIGNAL_TYPE_DEFINED
 enum ENUM_SIGNAL_TYPE
 {
     SIGNAL_NONE = 0,                      // No signal
     SIGNAL_BUY = 1,                       // Buy signal
-    SIGNAL_SELL = 2,                      // Sell signal
+    SIGNAL_SELL = -1,                     // Sell signal (consistent with other files)
     SIGNAL_BUY_STRONG = 3,                // Strong buy signal
     SIGNAL_SELL_STRONG = 4,               // Strong sell signal
     SIGNAL_WAIT = 5,                      // Wait signal
@@ -46,6 +67,7 @@ enum ENUM_SIGNAL_TYPE
     SIGNAL_CLOSE_SELL = 9,                // Close sell signal
     SIGNAL_UNKNOWN = 10,                  // Unknown signal
 };
+#endif
 
 //+------------------------------------------------------------------+
 //| TRADING SESSION ENUMERATIONS                                     |
@@ -754,11 +776,8 @@ enum ENUM_REGIME_EXTENDED
 #define ERR_INVALID_STOPS      4005
 
 // FINAL SPRINT - Standard MQL5 error constants
-#define ERR_NOT_ENOUGH_MONEY   134
-#define ERR_TRADE_DISABLED     133
-#define ERR_MARKET_CLOSED      132
-#define ERR_INVALID_PRICE      131
-#define ERR_INVALID_VOLUME     130
+// NOTE: Use built-in MQL5 error constants to avoid redefinition warnings
+// ERR_NOT_ENOUGH_MONEY, ERR_TRADE_DISABLED, ERR_MARKET_CLOSED, ERR_INVALID_PRICE, ERR_INVALID_VOLUME
 
 //+------------------------------------------------------------------+
 //| SYSTEMATIC FIX - Missing Error Severity Enums                   |

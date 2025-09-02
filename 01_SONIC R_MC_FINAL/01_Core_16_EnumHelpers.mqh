@@ -11,7 +11,7 @@
 //+------------------------------------------------------------------+
 //| Enum Helper Functions - Forward Declarations Only               |
 //+------------------------------------------------------------------+
-// NOTE: Function implementations are provided in other modules
+// NOTE: Function implementations are provided in 01_Core_22_SonicEnums.mqh
 // This file only provides forward declarations to avoid duplicates
 
 #endif // CORE_16_ENUM_HELPERS_MQH

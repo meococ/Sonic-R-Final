@@ -23,7 +23,7 @@
 
 1. **Automated Compilation** (First Pass)
    ```powershell
-   .\00_Compile\02_Run Compile\sonic_compile.ps1 -Mode full -Target ea
+   .\00_Compile\02_Run Compile\sonic_compile.ps1 -Mode full -Target ea  # canonical compiler
    ```
 
 2. **Manual Verification** (Second Pass - CRITICAL)

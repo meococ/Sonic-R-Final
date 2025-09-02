@@ -3,6 +3,14 @@
 //|                      PVSRA Pattern Visual Overlay System          |
 //|                           Professional Volume Analysis Display     |
 //+------------------------------------------------------------------+
+#ifndef UI_PVSRA_OVERLAY_MQH
+#define UI_PVSRA_OVERLAY_MQH
+#ifndef HAVE_MINIMAL_PVSRA_ENUM
+#define HAVE_MINIMAL_PVSRA_ENUM 1
+#endif
+#include "01_Core_14_CoreEnums.mqh"
+#include "01_Core_22_SonicEnums.mqh"
+#include "01_Core_00_Inputs.mqh"
 #property copyright "Sonic R MC EA"
 #property version   "2.0"
 #property strict
@@ -129,13 +137,13 @@ public:
         
         if(isHighVolume) {
             barColor = isBullish ? m_theme.VolumeHigh_Bullish : m_theme.VolumeHigh_Bearish;
-            volumeType = "HIGH_VOL";
+            volumeType = isBullish ? "HIGH VOL (BUY)" : "HIGH VOL (SELL)";
         } else if(isLowVolume) {
             barColor = isBullish ? m_theme.VolumeLow_Bullish : m_theme.VolumeLow_Bearish;
-            volumeType = "LOW_VOL";
+            volumeType = isBullish ? "LOW VOL (BUY)" : "LOW VOL (SELL)";
         } else {
             barColor = m_theme.VolumeNormal;
-            volumeType = "NORMAL";
+            volumeType = "NORMAL VOL";
         }
         
         // Create volume indicator
@@ -158,9 +166,12 @@ public:
         // Add volume info if significant
         if(isHighVolume || isLowVolume) {
             string labelName = objName + "_Label";
-            string volumeText = StringFormat("%s %.1fx", volumeType, volumeRatio);
-            
-            if(ObjectCreate(0, labelName, OBJ_TEXT, 0, barTime, high + 5 * _Point)) {
+            string volumeText = StringFormat("%s  x%.1f", volumeType, volumeRatio);
+            double pip = ((_Digits==3 || _Digits==5) ? (10*_Point) : _Point);
+            double baseOffset = MathMax(1, InpOverlayLabelOffsetPips) * pip;
+            double alt = (InpOverlayAlternateBarLabels && (barIndex % 2 == 1) ? 1.5 : 1.0);
+            double y = high + (5 * _Point) + alt * baseOffset;
+            if(ObjectCreate(0, labelName, OBJ_TEXT, 0, barTime, y)) {
                 ObjectSetString(0, labelName, OBJPROP_TEXT, volumeText);
                 ObjectSetInteger(0, labelName, OBJPROP_COLOR, barColor);
                 ObjectSetInteger(0, labelName, OBJPROP_FONTSIZE, 7);
@@ -191,33 +202,33 @@ public:
         switch(pattern) {
             case PVSRA_SPRING:
                 patternColor = m_theme.Spring_Color;
-                symbolCode = 115; // Diamond
-                patternText = "?? SPRING";
+                symbolCode = 217; // Plus (more visible)
+                patternText = "SPRING";
                 break;
             case PVSRA_UPTHRUST:
                 patternColor = m_theme.Upthrust_Color;
-                symbolCode = 116; // Diamond
-                patternText = "? UPTHRUST";
+                symbolCode = 159; // Circle
+                patternText = "UPTHRUST";
                 break;
             case PVSRA_SELLING_CLIMAX:
                 patternColor = m_theme.SellingClimax_Color;
                 symbolCode = 234; // Down arrow
-                patternText = "?? SELLING CLIMAX";
+                patternText = "SELLING CLIMAX";
                 break;
             case PVSRA_AUTOMATIC_RALLY:
                 patternColor = m_theme.AutomaticRally_Color;
                 symbolCode = 233; // Up arrow
-                patternText = "?? AUTO RALLY";
+                patternText = "AUTO RALLY";
                 break;
             case PVSRA_SIGN_OF_STRENGTH:
                 patternColor = m_theme.SignOfStrength_Color;
                 symbolCode = 217; // Plus
-                patternText = "?? STRENGTH";
+                patternText = "STRENGTH";
                 break;
             default:
                 patternColor = m_theme.VolumeNormal;
                 symbolCode = 159; // Circle
-                patternText = "?? PATTERN";
+                patternText = "PATTERN";
         }
         
         // Create pattern symbol
@@ -230,7 +241,7 @@ public:
         
         // Add pattern label with confidence
         string labelName = objName + "_Label";
-        string fullText = StringFormat("%s (%.0f%%)", patternText, confidence * 100);
+    string fullText = StringFormat("%s  %.0f%%", patternText, confidence * 100);
         if(additionalInfo != "") fullText += "\n" + additionalInfo;
         
         if(ObjectCreate(0, labelName, OBJ_TEXT, 0, time, price + 15 * _Point)) {
@@ -382,10 +393,10 @@ public:
     
     void RemoveAllObjects() {
         ObjectsDeleteAll(0, m_prefix);
-        ArrayInitialize(m_patternObjects, "");
-        ArrayInitialize(m_volumeObjects, "");
-        ArrayInitialize(m_srObjects, "");
-        ArrayInitialize(m_wyckoffObjects, "");
+        for(int i=0;i<ArraySize(m_patternObjects);i++) m_patternObjects[i] = "";
+        for(int i=0;i<ArraySize(m_volumeObjects);i++) m_volumeObjects[i] = "";
+        for(int i=0;i<ArraySize(m_srObjects);i++) m_srObjects[i] = "";
+        for(int i=0;i<ArraySize(m_wyckoffObjects);i++) m_wyckoffObjects[i] = "";
         m_objectCount = 0;
         Print("?? All PVSRA overlay objects removed");
     }
@@ -433,8 +444,11 @@ private:
 //| ?? GLOBAL PVSRA OVERLAY INSTANCE                                 |
 //+------------------------------------------------------------------+
 // SYSTEMATIC FIX - MQL5 global pointers cannot be initialized with assignment
-CPVSRAOverlayManager* g_PVSRAOverlay;
+CPVSRAOverlayManager* g_PVSRAOverlay = NULL;
 
+//+------------------------------------------------------------------+
+//| ?? PVSRA OVERLAY HELPER FUNCTIONS                                 |
+//+------------------------------------------------------------------+
 // Helper functions for easy access
 void PVSRA_DrawPattern(ENUM_PVSRA_PATTERN pattern, datetime time, double price, double confidence) {
     if(g_PVSRAOverlay != NULL) g_PVSRAOverlay.DrawPVSRAPattern(pattern, time, price, confidence);
@@ -451,3 +465,5 @@ void PVSRA_DrawSR(double price, datetime time, bool isSupport, double strength, 
 void PVSRA_DrawWyckoffPhase(ENUM_WYCKOFF_PHASE phase, datetime start, datetime end, double high, double low, double confidence) {
     if(g_PVSRAOverlay != NULL) g_PVSRAOverlay.DrawWyckoffPhase(phase, start, end, high, low, confidence);
 }
+
+#endif // PVSRA_OVERLAY_MANAGER_MQH

@@ -279,7 +279,7 @@ void UpdateSMCLevels()
 {
 // This method would be called to update SMC levels based on current market structure
 // Implementation would include BOS/CHOCH detection and level validation
-Print("?? [SMC] Updating SMC levels with quantified strength analysis");
+DPrintBT("[SMC] Updating SMC levels with quantified strength analysis");
 }
 
 bool CalculatePVSRA(int shift)  // Added shift parameter
@@ -289,7 +289,7 @@ int safeShift = MathMin(shift, Bars(_Symbol, PERIOD_CURRENT) - 5);
 
 // 2. Ki?m tra gi?i h?n m?ng
 if(safeShift < 0) {
-Print("?? [PVSRA] Not enough bars for analysis - using fallback");
+DPrintBT("[PVSRA] Not enough bars for analysis - using fallback");
 // Chuy?n sang ch? d? co b?n thay v� d?ng ho�n to�n
 // m_pvsraScore = 0.0;  // Assuming m_pvsraScore is a class member
 // m_pvsraConfidence = 0.0;  // Assuming m_pvsraConfidence is a class member
@@ -328,7 +328,7 @@ bool InitializeSMCStrengthCalculator()
 {
 if(g_SMCStrengthCalculator == NULL) {
 g_SMCStrengthCalculator = new CSMCStrengthCalculator();
-Print("?? SMC Strength Calculator initialized with quantified analysis");
+DPrintBT("[SMC] Strength Calculator initialized with quantified analysis");
 return true;
 }
 return true;
@@ -378,7 +378,7 @@ double CalculateSMCScore()
 
     // Fallback khi kh�ng c� d? li?u theo y�u c?u review.txt
     if(smcScore == 0.0) {
-        Print("?? [PHASE 2] SMC fallback: No liquidity/order block/structure data available");
+        DPrintBT("[PHASE2] SMC fallback: No liquidity/order block/structure data available");
         return 0.1; // Minimal score as fallback
     }
 

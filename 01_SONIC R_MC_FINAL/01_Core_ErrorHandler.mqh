@@ -109,7 +109,7 @@ public:
         {
             // No error
             case 0: return "No error";
-            
+
             // Common MQL5 errors
             case 4001: return "Unexpected internal error";
             case 4002: return "Wrong parameter";
@@ -126,7 +126,7 @@ public:
             case 4013: return "Invalid pointer";
             case 4014: return "Invalid pointer type";
             case 4015: return "Function not allowed in call";
-            
+
             // Terminal errors
             case 4051: return "Invalid function parameter value";
             case 4108: return "Invalid ticket";
@@ -135,7 +135,7 @@ public:
             case 4111: return "Shorts are not allowed";
             case 4112: return "Automated trading disabled";
             case 4756: return "Position already closed";
-            
+
             // Trade server return codes
             case 10004: return "Requote";
             case 10006: return "Request rejected";
@@ -175,11 +175,56 @@ public:
             case 10043: return "Cannot modify order type";
             case 10044: return "Position already closed by SL";
             case 10045: return "Position already closed by TP";
-            
+
             default: return "Unknown error: " + IntegerToString(errorCode);
         }
     }
-    
+
+    // Detailed recommended action for trade retcodes
+    string GetRetcodeAction(const int retcode)
+    {
+        switch(retcode)
+        {
+            case 10004: return "Retry with slippage/price refresh (requote).";
+            case 10006: return "Skip and re-evaluate conditions; possible server reject.";
+            case 10011: return "Server processing error; retry later or switch mode.";
+            case 10012: return "Timeout; check connection/latency and retry cautiously.";
+            case 10014: return "Adjust volume to step/min; recalc lot sizing.";
+            case 10015: return "Refresh price; ensure normalized price and re-send.";
+            case 10016: return "Adjust SL/TP to meet StopsLevel; widen stop minimally.";
+            case 10017: return "Trading disabled; abort and alert user/system.";
+            case 10018: return "Market closed; schedule retry on session open.";
+            case 10019: return "Reduce lot size (risk) due to insufficient margin.";
+            case 10020: return "Prices changed; refresh quotes and re-validate.";
+            case 10021: return "No quotes; wait for tick and retry.";
+            case 10024: return "Too frequent requests; backoff and reduce frequency.";
+            case 10028: return "Request lock; wait and retry once.";
+            case 4109:  return "Terminal trading disabled; enable algo trading.";
+            case 4110:  return "Longs not allowed; disable BUY in this symbol/account.";
+            case 4111:  return "Shorts not allowed; disable SELL in this symbol/account.";
+            default:    return "Check context, log details, and apply fallback policy.";
+        }
+    }
+
+    // Unified trade logging helpers
+    void LogTradeError(const string op, const int retcode, const string srvComment,
+                       const string symbol, const double volume, const double price,
+                       const double sl, const double tp, const string context="")
+    {
+        string desc = GetErrorDescription(retcode);
+        string action = GetRetcodeAction(retcode);
+        PrintFormat("[TRADE][ERROR] op=%s sym=%s vol=%.2f price=%.5f SL=%.5f TP=%.5f ret=%d '%s' desc=%s | action=%s | ctx=%s",
+                    op, symbol, volume, price, sl, tp, retcode, srvComment, desc, action, context);
+    }
+
+    void LogTradeSuccess(const string op, const ulong ticket, const string symbol,
+                         const double volume, const double price, const double sl, const double tp,
+                         const string comment="")
+    {
+        PrintFormat("[TRADE][OK] op=%s ticket=%I64u sym=%s vol=%.2f price=%.5f SL=%.5f TP=%.5f %s",
+                    op, ticket, symbol, volume, price, sl, tp, comment);
+    }
+
     //+------------------------------------------------------------------+
     //| Clear last error                                                 |
     //+------------------------------------------------------------------+

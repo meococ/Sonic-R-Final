@@ -3,7 +3,7 @@
 //|                     ?? SONIC R MC - INDICATOR MANAGER           |
 //|                         Advanced Indicator Management            |
 //+------------------------------------------------------------------+
-#property copyright "Sonic R MC Team - Ð?i Bàng Enhanced"
+#property copyright "Sonic R MC Team - ï¿½?i Bï¿½ng Enhanced"
 #property version   "2.00"
 
 #ifndef CORE_08_INDICATOR_MANAGER_MQH
@@ -272,7 +272,7 @@ private:
 //| GLOBAL INSTANCES                                                 |
 //+------------------------------------------------------------------+
 CIndicatorManager* g_indicatorManager = NULL;
-CAdvancedLogger* g_advancedLogger = NULL;
+extern CAdvancedLogger* g_advancedLogger;
 
 //+------------------------------------------------------------------+
 //| INITIALIZATION FUNCTIONS                                         |

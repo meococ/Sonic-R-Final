@@ -1,4 +1,12 @@
 #ifndef CORE_TIMEMANAGER_MQH
+// Helper: auto-detect broker GMT offset
+int DetectBrokerGMTOffset()
+{
+    datetime srv = TimeTradeServer();
+    datetime gmt = TimeGMT();
+    return (int)MathRound(((double)(srv - gmt))/3600.0);
+}
+
 #define CORE_TIMEMANAGER_MQH
 
 #include "01_Core_07_CommonStructures.mqh"
@@ -6,7 +14,7 @@
 
 // MQL5 doesn't support namespaces
 
-class CTimeManager 
+class CTimeManager
 {
 private:
 bool                m_initialized;
@@ -15,7 +23,7 @@ datetime            m_lastBarTime;
 MqlDateTime         m_currentTime;
 
 public:
-CTimeManager() : 
+CTimeManager() :
 m_initialized(false),
 m_isNewBar(false),
 m_lastBarTime(0)
@@ -68,18 +76,18 @@ int GetCurrentMonth() const { return m_currentTime.mon; }
 int GetCurrentYear() const { return m_currentTime.year; }
 
 // Session checks
-bool IsTradeAllowed() const 
-{ 
+bool IsTradeAllowed() const
+{
 // Enhanced session check with news filter
 if(!IsWithinTradingHours()) return false;
 if(IsHighImpactNews()) return false;
 return true;
 }
 
-bool IsWithinTradingHours() const 
-{ 
+bool IsWithinTradingHours() const
+{
 // Trading hours: avoid weekend and early morning
-return (m_currentTime.hour >= 1 && m_currentTime.hour <= 23 && 
+return (m_currentTime.hour >= 1 && m_currentTime.hour <= 23 &&
 m_currentTime.day_of_week >= 1 && m_currentTime.day_of_week <= 5);
 }
 

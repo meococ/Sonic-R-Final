@@ -19,6 +19,7 @@
 #include <Trade/SymbolInfo.mqh>
 #include <Trade/PositionInfo.mqh>
 #include <Trade/OrderInfo.mqh>
+#include "01_Core_ErrorHandler.mqh"
 
 // REMOVED: SSignalInfo struct - now defined in SonicR_CommonStructs.mqh
 
@@ -141,6 +142,7 @@ m_magicNumber = magic;
 m_maxRiskPercent = maxRisk;
 // Initialize symbol info
 if(!m_symbolInfo.Name(m_symbol)) {
+if(g_errorHandler!=NULL) g_errorHandler.HandleError(GetLastError(), "TradeManager::Initialize.Symbol");
 Print("TradeManager ERROR: Failed to initialize symbol: " + m_symbol);
 return false;
 }
@@ -153,6 +155,7 @@ m_trade.SetDeviationInPoints(m_slippage);
 
 // Refresh symbol info
 if(!m_symbolInfo.RefreshRates()) {
+if(g_errorHandler!=NULL) g_errorHandler.HandleError(GetLastError(), "TradeManager::Initialize.RefreshRates");
 Print("TradeManager ERROR: Failed to refresh rates for: " + m_symbol);
 return false;
 }
@@ -201,12 +204,10 @@ bool result = m_trade.Buy(volume, m_symbol, price, sl, tp, tradeComment);
 if(result) {
 m_totalTrades++;
 g_lastTradeTime = TimeCurrent();
-g_lastTradeBarOpen = iTime(_Symbol, PERIOD_CURRENT, 0);
 Print("TradeManager TRADE: BUY " + m_symbol + " " + DoubleToString(volume,2) + " " + DoubleToString(price,5) + " " + tradeComment);
-Print("TradeManager INFO: Buy order executed successfully. Ticket: " + IntegerToString(m_trade.ResultOrder()));
+if(g_errorHandler!=NULL) g_errorHandler.LogTradeSuccess("BUY", (ulong)m_trade.ResultDeal(), m_symbol, volume, price, sl, tp, tradeComment);
 } else {
-Print("TradeManager ERROR: Failed to open buy position. Error: " + IntegerToString(GetLastError()));
-Print("TradeManager ERROR: Trade result: " + IntegerToString(m_trade.ResultRetcode()) + " - " + m_trade.ResultComment());
+if(g_errorHandler!=NULL) g_errorHandler.LogTradeError("BUY", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, volume, price, sl, tp, "TradeManager::OpenBuy");
 }
 
 return result;
@@ -248,12 +249,10 @@ bool result = m_trade.Sell(volume, m_symbol, price, sl, tp, tradeComment);
 if(result) {
 m_totalTrades++;
 g_lastTradeTime = TimeCurrent();
-g_lastTradeBarOpen = iTime(_Symbol, PERIOD_CURRENT, 0);
 Print("TradeManager TRADE: SELL " + m_symbol + " " + DoubleToString(volume,2) + " " + DoubleToString(price,5) + " " + tradeComment);
-Print("TradeManager INFO: Sell order executed successfully. Ticket: " + IntegerToString(m_trade.ResultOrder()));
+if(g_errorHandler!=NULL) g_errorHandler.LogTradeSuccess("SELL", (ulong)m_trade.ResultDeal(), m_symbol, volume, price, sl, tp, tradeComment);
 } else {
-Print("TradeManager ERROR: Failed to open sell position. Error: " + IntegerToString(GetLastError()));
-Print("TradeManager ERROR: Trade result: " + IntegerToString(m_trade.ResultRetcode()) + " - " + m_trade.ResultComment());
+if(g_errorHandler!=NULL) g_errorHandler.LogTradeError("SELL", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, volume, price, sl, tp, "TradeManager::OpenSell");
 }
 
 return result;
@@ -310,6 +309,8 @@ return false;
 }
 
 bool result = m_trade.PositionClose(ticket);
+if(!result && g_errorHandler!=NULL){ g_errorHandler.LogTradeError("CLOSE", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, 0.0, 0.0, "TradeManager::ClosePosition"); }
+else if(result && g_errorHandler!=NULL){ g_errorHandler.LogTradeSuccess("CLOSE", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), m_positionInfo.StopLoss(), m_positionInfo.TakeProfit(), ""); }
 
 if(result) {
 Print("TradeManager INFO: Position closed successfully. Ticket: " + IntegerToString(ticket));
@@ -354,6 +355,8 @@ if(sl > 0) sl = m_symbolInfo.NormalizePrice(sl);
 if(tp > 0) tp = m_symbolInfo.NormalizePrice(tp);
 
 bool result = m_trade.PositionModify(ticket, sl, tp);
+if(!result && g_errorHandler!=NULL){ g_errorHandler.LogTradeError("MODIFY", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, sl, tp, "TradeManager::ModifyPosition"); }
+else if(result && g_errorHandler!=NULL){ g_errorHandler.LogTradeSuccess("MODIFY", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), sl, tp, ""); }
 
 if(result) {
 Print("TradeManager INFO: Position modified. Ticket: " + IntegerToString(ticket));
@@ -478,7 +481,7 @@ void SetMaxLotSize(double maxLot) { m_maxLotSize = maxLot; }
 
 /**
 * @brief C?p nh?t trailing stop cho t?t c? positions
-* @note Ðu?c g?i t? OnTick() d? theo dõi liên t?c
+* @note ï¿½u?c g?i t? OnTick() d? theo dï¿½i liï¿½n t?c
 */
 void UpdateTrailingStops() {
 if(!m_trailingStopEnabled) return;
@@ -495,7 +498,7 @@ UpdatePositionTrailingStop(m_positionInfo.Ticket());
 /**
 * @brief C?p nh?t trailing stop cho m?t position c? th?
 * @param ticket Ticket c?a position
-* @return true n?u c?p nh?t thành công
+* @return true n?u c?p nh?t thï¿½nh cï¿½ng
 */
 bool UpdatePositionTrailingStop(ulong ticket) {
 if(!m_positionInfo.SelectByTicket(ticket)) return false;
@@ -517,11 +520,10 @@ newSL = currentPrice - trailingDistance;
 if(currentSL == 0.0 || newSL > currentSL + stepSize) {
 newSL = m_symbolInfo.NormalizePrice(newSL);
 
-if(m_trade.PositionModify(ticket, newSL, m_positionInfo.TakeProfit())) {
+if(m_trade.PositionModify(ticket, newSL, m_positionInfo.TakeProfit())) { if(g_errorHandler!=NULL) g_errorHandler.LogTradeSuccess("TRAIL", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), newSL, m_positionInfo.TakeProfit(), ""); } else { if(g_errorHandler!=NULL) g_errorHandler.LogTradeError("TRAIL", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, newSL, m_positionInfo.TakeProfit(), "TradeManager::ApplyTrailingStop"); }
 Print(StringFormat("[TRAILING] BUY position %d: SL moved from %.5f to %.5f", 
 ticket, currentSL, newSL));
 return true;
-}
 }
 } else {
 // SELL position trailing stop
@@ -531,11 +533,10 @@ newSL = currentPrice + trailingDistance;
 if(currentSL == 0.0 || newSL < currentSL - stepSize) {
 newSL = m_symbolInfo.NormalizePrice(newSL);
 
-if(m_trade.PositionModify(ticket, newSL, m_positionInfo.TakeProfit())) {
+if(m_trade.PositionModify(ticket, newSL, m_positionInfo.TakeProfit())) { if(g_errorHandler!=NULL) g_errorHandler.LogTradeSuccess("TRAIL", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), newSL, m_positionInfo.TakeProfit(), ""); } else { if(g_errorHandler!=NULL) g_errorHandler.LogTradeError("TRAIL", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, newSL, m_positionInfo.TakeProfit(), "TradeManager::ApplyTrailingStop"); }
 Print(StringFormat("[TRAILING] SELL position %d: SL moved from %.5f to %.5f", 
 ticket, currentSL, newSL));
 return true;
-}
 }
 }
 
@@ -543,9 +544,9 @@ return false;
 }
 
 /**
-* @brief Ki?m tra và th?c hi?n break-even stop
+* @brief Ki?m tra vï¿½ th?c hi?n break-even stop
 * @param ticket Ticket c?a position
-* @return true n?u break-even du?c kích ho?t
+* @return true n?u break-even du?c kï¿½ch ho?t
 */
 bool CheckAndSetBreakEven(ulong ticket) {
 if(!m_breakEvenEnabled) return false;
@@ -579,11 +580,10 @@ shouldSetBreakEven = (currentSL > newSL || currentSL == 0.0);
 if(shouldSetBreakEven) {
 newSL = m_symbolInfo.NormalizePrice(newSL);
 
-if(m_trade.PositionModify(ticket, newSL, m_positionInfo.TakeProfit())) {
-Print(StringFormat("[BREAK-EVEN] Position %d: SL set to break-even at %.5f", 
+if(m_trade.PositionModify(ticket, newSL, m_positionInfo.TakeProfit())) { if(g_errorHandler!=NULL) g_errorHandler.LogTradeSuccess("BREAK_EVEN", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), newSL, m_positionInfo.TakeProfit(), ""); } else { if(g_errorHandler!=NULL) g_errorHandler.LogTradeError("BREAK_EVEN", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, newSL, m_positionInfo.TakeProfit(), "TradeManager::ApplyBreakEven"); }
+Print(StringFormat("[BREAK-EVEN] Position %d: SL set to break-even at %.5f",
 ticket, newSL));
 return true;
-}
 }
 
 return false;
@@ -591,7 +591,7 @@ return false;
 
 /**
 * @brief Ki?m tra di?u ki?n early exit
-* @note Ki?m tra th?i gian, profit target, và market regime changes
+* @note Ki?m tra th?i gian, profit target, vï¿½ market regime changes
 */
 void CheckEarlyExitConditions() {
 if(!m_earlyExitEnabled) return;
@@ -608,7 +608,7 @@ CheckPositionEarlyExit(m_positionInfo.Ticket());
 /**
 * @brief Ki?m tra early exit cho m?t position c? th?
 * @param ticket Ticket c?a position
-* @return true n?u position du?c dóng s?m
+* @return true n?u position du?c dï¿½ng s?m
 */
 bool CheckPositionEarlyExit(ulong ticket) {
 if(!m_positionInfo.SelectByTicket(ticket)) return false;
@@ -622,7 +622,10 @@ if((currentTime - openTime) >= m_earlyExitTimeLimit * 60) {
 if(currentProfit > 0) {
 Print(StringFormat("[EARLY EXIT] Position %d closed due to time limit with profit %.2f", 
 ticket, currentProfit));
-return m_trade.PositionClose(ticket);
+bool __res = m_trade.PositionClose(ticket);
+if(!__res && g_errorHandler!=NULL){ g_errorHandler.LogTradeError("EARLY_EXIT_TIME", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, 0.0, 0.0, "TradeManager::EarlyExitByTime"); }
+else if(__res && g_errorHandler!=NULL){ g_errorHandler.LogTradeSuccess("EARLY_EXIT_TIME", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), m_positionInfo.StopLoss(), m_positionInfo.TakeProfit(), ""); }
+return __res;
 }
 }
 
@@ -641,13 +644,19 @@ profitPips = (entryPrice - currentPrice) / _Point;
 if(profitPips >= m_earlyExitProfitTarget) {
 Print(StringFormat("[EARLY EXIT] Position %d closed at profit target: %.1f pips", 
 ticket, profitPips));
-return m_trade.PositionClose(ticket);
+bool __res2 = m_trade.PositionClose(ticket);
+if(!__res2 && g_errorHandler!=NULL){ g_errorHandler.LogTradeError("EARLY_EXIT_PROFIT", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, 0.0, 0.0, "TradeManager::EarlyExitByProfit"); }
+else if(__res2 && g_errorHandler!=NULL){ g_errorHandler.LogTradeSuccess("EARLY_EXIT_PROFIT", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), m_positionInfo.StopLoss(), m_positionInfo.TakeProfit(), ""); }
+return __res2;
 }
 
 // Ki?m tra volatility spike (early exit condition)
 if(IsVolatilitySpike()) {
 Print(StringFormat("[EARLY EXIT] Position %d closed due to volatility spike", ticket));
-return m_trade.PositionClose(ticket);
+bool __res3 = m_trade.PositionClose(ticket);
+if(!__res3 && g_errorHandler!=NULL){ g_errorHandler.LogTradeError("EARLY_EXIT_VOL", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, 0.0, 0.0, 0.0, 0.0, "TradeManager::EarlyExitByVolatility"); }
+else if(__res3 && g_errorHandler!=NULL){ g_errorHandler.LogTradeSuccess("EARLY_EXIT_VOL", (ulong)m_trade.ResultDeal(), m_symbol, m_positionInfo.Volume(), m_positionInfo.PriceOpen(), m_positionInfo.StopLoss(), m_positionInfo.TakeProfit(), ""); }
+return __res3;
 }
 
 return false;
@@ -655,7 +664,7 @@ return false;
 
 /**
 * @brief Ki?m tra volatility spike
-* @return true n?u có volatility spike
+* @return true n?u cï¿½ volatility spike
 */
 bool IsVolatilitySpike() {
 int atrHandle = iATR(_Symbol, PERIOD_CURRENT, 14);
@@ -670,13 +679,13 @@ return false;
 
 IndicatorRelease(atrHandle);
 
-// Volatility spike n?u ATR hi?n t?i > 150% ATR tru?c dó
+// Volatility spike n?u ATR hi?n t?i > 150% ATR tru?c dï¿½
 return (atrBuffer[0] > atrBuffer[1] * 1.5);
 }
 
 /**
 * @brief C?p nh?t t?t c? position management
-* @note G?i t? OnTick() d? qu?n lý positions
+* @note G?i t? OnTick() d? qu?n lï¿½ positions
 */
 void UpdatePositionManagement() {
 UpdateTrailingStops();
@@ -692,7 +701,7 @@ CheckAndSetBreakEven(m_positionInfo.Ticket());
 }
 }
 
-// Setters cho trailing stop và early exit
+// Setters cho trailing stop vï¿½ early exit
 void SetTrailingStopEnabled(bool enabled) { m_trailingStopEnabled = enabled; }
 void SetTrailingStopDistance(double distance) { m_trailingStopDistance = distance; }
 void SetTrailingStepSize(double stepSize) { m_trailingStepSize = stepSize; }
@@ -1404,7 +1413,7 @@ return false;
 }
 
 // Calculate position size based on risk
-double lotSize = CalculatePositionSize(signalData.stopLoss, signalData.entryPrice);
+double lotSize = CalculatePositionSizeByTick(m_symbol, signalData.stopLoss, signalData.entryPrice);
 if(lotSize <= 0) {
 Print("? [TRADE] Signal processing failed: Invalid lot size calculated");
 return false;
@@ -1447,9 +1456,11 @@ string direction = "";
 switch(signalData.signalType)
 {
 case SIGNAL_BUY:
-success = m_trade.Buy(lotSize, m_symbol, signalData.entryPrice, 
-signalData.stopLoss, signalData.takeProfit, 
+success = m_trade.Buy(lotSize, m_symbol, signalData.entryPrice,
+signalData.stopLoss, signalData.takeProfit,
 m_comment);
+ if(!success && g_errorHandler!=NULL){ g_errorHandler.LogTradeError("EXECUTE_BUY", m_trade.ResultRetcode(), m_trade.ResultComment(), m_symbol, lotSize, signalData.entryPrice, signalData.stopLoss, signalData.takeProfit, "TradeManager::ExecuteSignal"); }
+ else if(success && g_errorHandler!=NULL){ g_errorHandler.LogTradeSuccess("EXECUTE_BUY", (ulong)m_trade.ResultDeal(), m_symbol, lotSize, signalData.entryPrice, signalData.stopLoss, signalData.takeProfit, m_comment); }
 direction = "BUY";
 break;
 
@@ -1488,33 +1499,36 @@ return false;
 //+------------------------------------------------------------------+
 //| ?? CALCULATE POSITION SIZE                                       |
 //+------------------------------------------------------------------+
-double CalculatePositionSize(double stopLoss, double entryPrice)
+double CalculatePositionSizeByTick(const string sym, double stopLoss, double entryPrice)
 {
-if(stopLoss <= 0 || entryPrice <= 0) {
-return 0.0;
-}
+    if(stopLoss <= 0 || entryPrice <= 0) return 0.0;
 
-// Calculate stop loss distance in pips
-double stopLossDistance = MathAbs(entryPrice - stopLoss) / _Point;
+    // Price distance for SL
+    double sl_dist_price = MathAbs(entryPrice - stopLoss);
 
-// Calculate risk amount
-double accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
-double riskAmount = accountBalance * (m_maxRiskPercent / 100.0);
+    // Risk amount
+    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+    double riskAmount = balance * (m_maxRiskPercent / 100.0);
 
-// Calculate pip value
-double pipValue = _Point * 100000; // Standard lot size for forex
+    // MT5-correct value per price unit per lot
+    double tick = SymbolInfoDouble(sym, SYMBOL_TRADE_TICK_SIZE);
+    double tv   = SymbolInfoDouble(sym, SYMBOL_TRADE_TICK_VALUE);
+    if(tick<=0 || tv<=0) return 0.0;
+    double valuePerPricePerLot = tv / tick; // money per 1.0 price move per 1 lot
 
-// Calculate position size
-double positionSize = riskAmount / (stopLossDistance * pipValue);
+    // Position size by monetary risk
+    double riskPerLot = sl_dist_price * valuePerPricePerLot;
+    if(riskPerLot<=0) return 0.0;
+    double lots = riskAmount / riskPerLot;
 
-// Apply lot size limits
-positionSize = MathMax(m_minLotSize, MathMin(m_maxLotSize, positionSize));
+    // Normalize to broker constraints
+    double minLot = SymbolInfoDouble(sym, SYMBOL_VOLUME_MIN);
+    double maxLot = SymbolInfoDouble(sym, SYMBOL_VOLUME_MAX);
+    double step   = SymbolInfoDouble(sym, SYMBOL_VOLUME_STEP);
+    lots = MathMax(minLot, MathMin(maxLot, MathFloor(lots/step)*step));
+    lots = MathMax(m_minLotSize, MathMin(m_maxLotSize, lots));
 
-// Normalize to broker lot step
-double lotStep = SymbolInfoDouble(m_symbol, SYMBOL_VOLUME_STEP);
-positionSize = MathRound(positionSize / lotStep) * lotStep;
-
-return positionSize;
+    return lots;
 }
 
 private:

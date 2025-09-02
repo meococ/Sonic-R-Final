@@ -1,0 +1,7 @@
+# Whitelist function names declared extern that may not have in-tree implementations (e.g., MetaTrader builtins, system hooks).
+OnInit
+OnTick
+OnDeinit
+OnTimer
+OnTradeTransaction
+

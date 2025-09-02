@@ -1,0 +1,73 @@
+; Sonic R MC - Preset (.set)
+; Name: Strict_Debug_Baseline_PVSRA_Soft (XAUUSD M15)
+; Purpose: Strict mode debug with PVSRA soft bias
+
+InpEnableScenario_SonicBase=true
+InpEnableScenario_MultiAsset=false
+
+InpUseNewBarMode=true
+InpSignalTimeframe=PERIOD_M15
+
+; Confluence & thresholds
+InpMinSignalStrength=70.0
+InpConfluenceThreshold=0.55
+InpMTFMinConfidence=0.50
+InpOptionalMinPass=0
+InpPresetByStrategy=false
+
+; PVSRA soft
+InpUsePVSRAEngine=true
+InpPVSRA_ConfluenceWeight=0.50
+InpPVSRA_ScoreThreshold=0.70
+InpPVSRA_StrictDirection=true
+
+; Risk baseline
+InpRiskPercent=0.5
+InpMaxDailyTrades=8
+InpMaxSpreadPips=25.0
+InpMaxDailyDrawdown=5.0
+
+; SL/TP & trailing (XAU tuned)
+InpUseATRBasedSL=true
+InpATRPeriod=14
+InpSL_ATR_Multiplier=1.2
+InpATRTimeframe=PERIOD_M15
+InpMinSLPips=250
+InpUseSpreadPadding=true
+InpEnableTrailing=true
+InpTrailingStart=60.0
+InpTrailingStep=20.0
+InpRRMode=RR_ATR_ADAPTIVE
+InpRR_Min=2.00
+InpRR_Max=3.00
+InpRR_Base=2.40
+InpRR_Slope=1.00
+InpRR_ATRRefTF=PERIOD_H1
+InpRR_ATRRefBars=50
+
+; Sessions
+InpEnableSessionFilter=true
+InpRestrictBySession=true
+InpAllowAsian=false
+InpAllowLondon=true
+InpAllowNY=true
+InpUseOverlapWindow=true
+InpOverlapStartHour=12
+InpOverlapEndHour=16
+
+; Guards
+InpEnableScout=false
+InpMinBarsBetweenTrades=8
+InpMinSecondsBetweenTrades=45
+
+; Debug/UI
+InpDebugMode=true
+InpShowDebugInfo=true
+InpRequireTrendStack=false
+InpShowDashboard=true
+InpBacktestLogMode=BT_LOG_COMPACT
+InpLogBarTF=PERIOD_M15
+
+; Alignment bonus
+InpAlignBonus=0.10
+

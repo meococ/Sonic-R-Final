@@ -1,0 +1,6 @@
+﻿=== INCLUDE AUDIT REPORT ===
+Total files scanned: 88
+Missing includes: 0
+Circular deps detected: 1
+CIRCULAR: C:\Users\ADMIN\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Sonic R_MC\01_SONIC R_MC_FINAL\02_DataProviders_05_IndicatorManager.mqh
+Externs without implementation: 0

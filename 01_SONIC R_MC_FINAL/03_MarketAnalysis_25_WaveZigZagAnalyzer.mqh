@@ -1,38 +1,20 @@
-#ifndef WAVE_ZIGZAG_ANALYZER_MQH
-#define WAVE_ZIGZAG_ANALYZER_MQH
+// Lightweight stub for Wave ZigZag Analyzer used by Orchestrator
+#ifndef MARKET_ANALYSIS_WAVE_ZIGZAG_ANALYZER_MQH
+#define MARKET_ANALYSIS_WAVE_ZIGZAG_ANALYZER_MQH
 
-#include "01_Core_22_SonicEnums.mqh"
+#include "01_Core_14_CoreEnums.mqh"
 
-class CWaveZigZagAnalyzer {
-private:
-int m_handleZigZag;
-double m_bufferZigZag[];
-
+class CWaveZigZagAnalyzer
+{
 public:
-CWaveZigZagAnalyzer() : m_handleZigZag(INVALID_HANDLE) {}
-~CWaveZigZagAnalyzer() { if(m_handleZigZag != INVALID_HANDLE) IndicatorRelease(m_handleZigZag); }
-
-bool Initialize(int depth, int deviation, int backstep) {
-m_handleZigZag = iCustom(_Symbol, _Period, "ZigZag", depth, deviation, backstep);
-if(m_handleZigZag == INVALID_HANDLE) {
-Print("Failed to create ZigZag indicator");
-return false;
-}
-ArraySetAsSeries(m_bufferZigZag, true);
-return true;
-}
-
-ENUM_WAVE_PATTERN AnalyzeWavePattern(int barsToCheck) {
-if(CopyBuffer(m_handleZigZag, 0, 0, barsToCheck, m_bufferZigZag) < barsToCheck) return WAVE_NONE;
-
-// Simple wave pattern detection logic
-// For example, detect LH/HL patterns
-// Implement detailed logic here based on ZigZag peaks and troughs
-
-return WAVE_NONE; // Stub, implement full logic
-}
+    CWaveZigZagAnalyzer() {}
+    void Initialize(const int depth, const int deviation, const int backstep) { (void)depth; (void)deviation; (void)backstep; }
+    ENUM_WAVE_PATTERN AnalyzeWavePattern(const int lookbackBars)
+    {
+        (void)lookbackBars;
+        return WAVE_PATTERN_NONE;
+    }
 };
 
-#endif
-
+#endif // MARKET_ANALYSIS_WAVE_ZIGZAG_ANALYZER_MQH
 

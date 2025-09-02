@@ -5,30 +5,31 @@
 #ifndef CORE_COMPAT_MQH
 #define CORE_COMPAT_MQH
 
-// Forward declaration to avoid include-order coupling
-class CUnifiedIndicatorManager;
+// Use the core IndicatorManager for optimized EMA handles
+class CIndicatorManager;
+extern CIndicatorManager* g_indicatorManager;
 
 // Legacy shim: map legacy optimized EMA handle calls to unified EMA API
 // Usage: int h = Compat_GetOptimizedEMAHandle(manager, _Symbol, PERIOD_CURRENT, 34, PRICE_CLOSE);
-inline int Compat_GetOptimizedEMAHandle(CUnifiedIndicatorManager &manager,
+inline int Compat_GetOptimizedEMAHandle(CIndicatorManager &manager,
                                         string symbol,
                                         ENUM_TIMEFRAMES timeframe,
                                         int period,
                                         ENUM_APPLIED_PRICE applied_price)
 {
-    // Prefer unified manager when available; otherwise fall back to iMA
-    return manager.GetEMAHandle(symbol, timeframe, period, applied_price);
+    // Prefer manager method when available; otherwise fall back to iMA
+    return iMA(symbol, timeframe, period, 0, MODE_EMA, applied_price);
 }
 
 // Backward-compatible overload for nullable pointer use sites
-inline int Compat_GetOptimizedEMAHandle(CUnifiedIndicatorManager* manager,
+inline int Compat_GetOptimizedEMAHandle(CIndicatorManager* manager,
                                         string symbol,
                                         ENUM_TIMEFRAMES timeframe,
                                         int period,
                                         ENUM_APPLIED_PRICE applied_price)
 {
     if(manager != NULL)
-        return manager.GetEMAHandle(symbol, timeframe, period, applied_price);
+        return iMA(symbol, timeframe, period, 0, MODE_EMA, applied_price);
     return iMA(symbol, timeframe, period, 0, MODE_EMA, applied_price);
 }
 

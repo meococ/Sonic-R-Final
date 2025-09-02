@@ -70,10 +70,18 @@
 - ✅ **Clean Compilation**: 0 errors, 0 warnings
 
 **Feature Flags Status** (for future enhancement):
-- 🔄 **FEATURE_EARLY_TREND**: Available in MasterIncludes but not active in current simplified version
-- 🔄 **FEATURE_DYNAMIC_WEIGHTS**: Available in MasterIncludes but not active in current simplified version
-- 🔄 **FEATURE_CONFLUENCE_ENGINE**: Partially implemented in ConsolidatedSignals
-- 🔄 **Full Module Integration**: Planned for Phase 2-4 of migration roadmap
+Control Matrix (MasterIncludes):
+- Feature Flags (default)
+  - FEATURE_PVSRA_V2=1, FEATURE_SMC_INTEGRATION=1, FEATURE_MULTI_TIMEFRAME=1, FEATURE_DRAGON_BAND=1
+  - FEATURE_CONFLUENCE_ENGINE=1, FEATURE_SCENARIO_MANAGER=1, FEATURE_INTELLIGENT_RISK=1, FEATURE_DASHBOARD=1, FEATURE_COMPLIANCE=1
+  - FEATURE_MASTER_ORCHESTRATOR=1 (guarded; safe on)
+  - ENABLE_SMC_ANALYSIS_FILES (heavy SMC internals) = OFF by default; turn ON to enable full SMC pipeline
+- Module Groups (ENABLED by default): CORE, DATA_PROVIDERS, MARKET_ANALYSIS (light), SIGNAL_GENERATION, TRADING, RISK_MANAGEMENT, TESTING, ARCHITECTURE, UI
+- Disabled by default: AI_ML, PORTFOLIO, PERFORMANCE, COMPLIANCE (group-level), REPORTS, NEWS
+
+Guidance:
+- Keep heavy SMC internals off for fast iteration; enable `ENABLE_SMC_ANALYSIS_FILES` only when needed.
+- Preserve include order: Enums → Inputs → Structures → Core → Signals → Analysis → Trading/Risk → UI.
 
 **Compilation Modes**:
 - **PRODUCTION**: All safety features enabled, extensive logging, error recovery
@@ -177,9 +185,11 @@
     - Tertiary: Session filter AND spread check AND daily limit check
 
 #### G. Compile & Logs
-- Quick compile: .\\00_Compile\\02_Run Compile\\quick_compile.bat
+- Canonical tool: PowerShell .\\00_Compile\\02_Run Compile\\sonic_compile.ps1 (recommended)
+  - Quick mode: `powershell -ExecutionPolicy Bypass -File "00_Compile/02_Run Compile/sonic_compile.ps1" -Mode quick -Target ea`
+- Shortcut: .\\00_Compile\\02_Run Compile\\quick_compile.bat (wrapper gọi sonic_compile.ps1)
 - Logs: .\\00_Compile\\02_Run Compile\\Logs\\
-- If many errors: .\\00_Compile\\02_Run Compile\\analyze_errors.ps1
+- Note: analyze_errors.ps1 deprecated; dùng sonic_compile.ps1 cho parsing & report
 
 #### H. Troubleshooting Checklist
 - operand expected → kiểm tra dấu ';' hoặc '}' và phạm vi block; rà trùng tên hàm free vs method
@@ -387,6 +397,115 @@ Before any production deployment, verify:
 - **Migration Ready**: Clear path from simplified to full functionality
 
 ---
+
+
+## 18) Bản cập nhật kỹ thuật (2025-08-26)
+
+### 18.1 Kiến trúc & nguyên tắc
+- Entry duy nhất: 00_Main_EA_SonicR.mq5
+- Facade include: 00_Main_MasterIncludes.mqh
+- Layers (một chiều phụ thuộc): core → data_providers → market_analysis → signals → trade → risk → ui → testing
+- SSOT cấu hình: Core_Config.mqh. Chỉ Core_Config đọc Inp*. Mọi nơi khác dùng getters: UseSonic()/UsePVSRA()/UseSMC()/GateSession()/StrictSonicClassic()/RR_Base()/ATR_SL_Mult()/SpreadCapPts()/...
+- Auto-Profile (APE): Core_AutoProfile.mqh sinh DNA theo symbol/TF (spread p50/p80, ATR p50/p80, StopsLevel, tick size/value) → derive tham số EC (spread cap, SL floor, RR base…). Clamp thay đổi ≤10–15%/phiên.
+
+### 18.2 Data Providers (một cửa)
+- Data_Providers.mqh: cache handle + CopyBuffer cho EMA/ATR.
+- API: DP_EMA34/89/200(shift), DP_EMA(period,shift), DP_ATR(period,shift), DP_Angle34Deg(lookback), DP_Time(tf,shift), DP_Close(tf,shift), DP_IsSessionAllowedNow() (đọc SessionPolicy() từ EC).
+- Quy ước: cấm gọi iMA/iATR/iTime/iClose trực tiếp bên ngoài Data_Providers.
+
+### 18.3 Runtime flow
+- OnInit: ApplyEffectiveConfig() → ValidateInputs() → APE.Load/Build → APE.DeriveTo(EC) → HUD.Init()
+- OnTick (Always analyze, gate at execute):
+  - MarketAnalysis cập nhật Dragon/Wave/Structure (+Confluence nếu bật)
+  - Signals: BuildTradeIntent() → chọn đường Strict hoặc Minimal-Core
+  - TradeGate: Session → Risk → Spread → Stops → Size → Cooldown/Duplicate → (DryRun? OrderSend)
+  - Testing/HUD cập nhật theo throttle
+- OnDeinit: Smoke_Report(), BP_PrintSummary(), APE.SaveDNA().
+
+### 18.4 Sonic R — Strict Path (đường mặc định chuẩn hóa)
+- Long conditions:
+  - DP_Angle34Deg() ≥ MinAngleDeg() (góc dốc EMA34)
+  - EMA34 > EMA89 (trend stack)
+  - Close > EMA34 High (outside Dragon)
+  - WaveValid(SIGNAL_BUY) với mô hình L–H–HL (fractal nhẹ, w=3)
+  - Entry = BREAK_LEG2: đặt phía trên leg#2 + offset
+  - SL dưới swing gần nhất; nếu < StopsLevel/ATR-floor → tự nâng (log “adjusted”)
+  - TP = RR_Base × SL; RR fixed baseline (adaptive bật sau)
+- Short đối xứng.
+- DecideDirection(): ưu tiên Wave → dấu góc Dragon → vị trí so EMA89.
+
+### 18.5 Confluence (MarketAnalysis_Ext)
+- Conf_Score() 0..1, cộng trọng số: Sonic core + (PVSRA nếu bật) + (SMC nếu bật)
+- PVSRA/SMC OFF ⇒ 0 điểm (không âm, không BYPASS)
+- Bias Soft/Hard: Soft = nhân BiasH4Score(); Hard = không align ⇒ trả -1.0 để Signals BYPASS
+
+### 18.6 Trade & Risk
+- Trading_StopsAndSizing.mqh:
+  - BuildStops() dùng ATR + StopsLevel + asset-floor; tự nâng SL nếu vi phạm StopsLevel
+  - CalcLots_RiskAndMargin() theo tickvalue/ticksize + risk% + step/min/max
+- Trading_Gateway.mqh:
+  - Gating thứ tự: Session → Risk/Equity → Spread (WarnOnly) → Stops → Size → Cooldown
+  - DryRun ghi trace/SMOKE, không OrderSend
+- Risk_Management.mqh: Daily loss, Max positions, Circuit (equity DD%, day-R)
+
+### 18.7 Quan sát & Testing
+- BYPASS: counters theo reason; HUD scoreboard + BP_PrintSummary() khi Deinit
+- Trace CSV: TraceLine(reason) → time, price, spread, ATR, EMA34/89/200, angle34, outside?, wave state, leg2, SL, RR, size, gates, reason
+- Smoke test (InpRunSmokeTest): mỗi candidate → verify SL/TP > 0, SL ≥ StopsLevel+buffer, RR_est ≥ 0.9 × RR_Base. Cuối kỳ: [SMOKE] cases=X ok=Y fail=Z sl_adjust=W
+
+## 19) Backlog “ô trống” & lộ trình wire (ưu tiên + DoD)
+
+### P0 — Bắt buộc ngắn hạn
+- PVSRA_Port (Stub→On)
+  - Mô tả: DoPVSRA_Score() mức Enhanced (z-score, whole/half proximity, vol-spike)
+  - Kết nối: MarketAnalysis_Ext → PVSRA_Score()
+  - DoD: OFF ⇒ 0 điểm; ON ⇒ Conf_Score thay đổi hợp lý theo mẫu case; 0 leak handle; HUD có PVSRA:on/off
+- SMC_Port (Stub→On)
+  - Mô tả: DoSMC_Score() (BOS/CHOCH lookback, FVG min ATR, OB touches, align H4)
+  - DoD: tương tự PVSRA; SMC OFF không trừ điểm
+- Strict Helper hoàn thiện
+  - WaveValid() tham số hóa: InpWaveSwingWidth=3, InpWaveMaxBack=150
+  - EntryOffset() đọc EC (ATR-based offset nhẹ)
+  - DoD: Strict pass tạo ứng viên ổn; Smoke ok/fail ≥ 3
+
+### P1 — Quan trọng trung hạn
+- RR Adaptive Clamp (APE-driven)
+  - Chọn RR ∈ [2.0, 3.0] theo vol_ratio; clamp ≤0.2/tuần; log “RR=AUTO k=…”.
+- SessionPolicy CUSTOM
+  - Cửa sổ GMT qua getters; tester thấy giờ thực thi; BYPASS phản ánh đúng
+- Trace CSV V2
+  - Thêm cột: profile, mode(STRICT/MIN), biasH4, confScore (nếu bật); file < 15 cột; flush theo lô 128 dòng
+
+### P2 — Nâng cấp giá trị thực chiến
+- ENTRY_MOMENTUM_LIMIT (preset)
+  - Vào limit trên nến impulse hợp lệ (body%, engulfing); toggle riêng
+- Bandit đơn giản cho RR (Thompson Sampling)
+  - RR ∈ {2.0, 2.5, 3.0} từ 60–90 lệnh; clamp theo DNA; không overfit (EMA smoothing)
+- Prop-firm compliance bổ sung
+  - Giới hạn day-R, max relative DD, max lot/session; toggle
+
+## 20) Kịch bản test backtest (NewBar mode)
+
+### Preset “Strict Debug Baseline”
+- Profile: PF_SONIC_BASIC; Mode: AUTO (APE on)
+- Session: OFF (analyze tự do, gate tại execute)
+- StrictSonicClassic: ON; DryRun: ON; WarnOnlySpreadCap: ON
+- BarsBetweenTrades: 6; InpRunSmokeTest: true
+- PASS:
+  - HUD: … | STRICT | DRYRUN | WARN-SPREAD
+  - Smoke: ok ≥ 70% (XAU M15, 1–2 tuần), fail ≤ 30%, sl_adjust < ok
+  - BYPASS top-3: Angle/Outside/Wave/Leg2 (không phải Stops/MinLot)
+- CSV mẫu:
+  time;bid;ask;spreadPts;ATR14;EMA34;EMA89;EMA200;angle34;outside;wave;leg2;SL;TP;RR;size;G_session;G_risk;G_spread;G_stops;reason;profile;mode;biasH4;conf
+  2024-11-05 10:45;...;...;32;1.85;...;...;...;1.62;1;L-H-HL;2134.50;2130.80;2136.90;2.10;0.12;1;1;1;1;SMOKE_OK;PF_SONIC_BASIC;STRICT;0.74;0.58
+
+### Preset “Minimal-Core Baseline”
+- Strict=OFF, MinimalCore=ON; các tham số khác giữ nguyên
+- PASS: Ứng viên dày hơn; BYPASS ít bị Wave/Leg2; Smoke ok ≥ 60%
+
+### Preset “VPSRA/SMC Soft-Weight”
+- UsePVSRA=ON (≈0.6), UseSMC=ON (≈0.4), Soft bias
+- PASS: Conf_Score thay đổi (CSV cột conf), không BYPASS vì PVSRA/SMC trừ điểm
 
 ## APPENDIX: Migration Status & Next Steps
 

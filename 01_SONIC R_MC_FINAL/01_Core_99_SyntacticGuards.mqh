@@ -9,6 +9,14 @@
 #define REQUIRE_PTR(p)                  do { if((p)==NULL) { Print("[PTR] Null pointer: ", #p); return false; } } while(0)
 #define REQUIRE_PTR_MSG(p,msg)          do { if((p)==NULL) { Print("[PTR] ", (msg)); return false; } } while(0)
 
+// Unified SafeDelete macros (idempotent)
+#ifndef SafeDelete
+  #define SafeDelete(p)                 do { if((p)!=NULL){ delete (p); (p)=NULL; } } while(0)
+#endif
+#ifndef SAFE_DELETE
+  #define SAFE_DELETE(p)                SafeDelete(p)
+#endif
+
 // Feature gates (documented in README_DEVELOPMENT.md)
 #ifndef FEATURE_EARLY_TREND
   // #define FEATURE_EARLY_TREND 1

@@ -346,6 +346,12 @@ m_minRiskPercent, m_maxRiskPercent
 }
 };
 
+//+------------------------------------------------------------------+
+//| GLOBAL VARIABLES DEFINITIONS                                     |
+//+------------------------------------------------------------------+
+// Define global variables that are declared as extern in other files
+CKellyCriterionSizer* g_KellySizer = NULL;
+
 #endif // RISK_KELLY_CRITERION_MQH 
 
 

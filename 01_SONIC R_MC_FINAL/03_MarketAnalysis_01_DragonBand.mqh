@@ -10,6 +10,7 @@
 #include "01_Core_07_CommonStructures.mqh"
 #include "02_DataProviders_05_IndicatorManager.mqh"
 
+#include "01_Core_17_Utils.mqh"
 //+------------------------------------------------------------------+
 //| ?? ENHANCED DRAGON BAND DATA STRUCTURE                          |
 //+------------------------------------------------------------------+
@@ -17,7 +18,7 @@ struct SEnhancedDragonBandData
 {
 // Core Dragon Band Values (3-EMA System)
 double emaHigh;                        // EMA 34 on HIGH
-double emaLow;                         // EMA 34 on LOW  
+double emaLow;                         // EMA 34 on LOW
 double emaClose;                       // EMA 34 on CLOSE
 double emaTrend89;                     // EMA 89 trend filter
 
@@ -87,7 +88,7 @@ confidence = 0.0;
 string GetDetailedReport()
 {
 return StringFormat(
-"?? Dragon Analysis | Angle: %.1f° | Trend: %s | Squeeze: %s (%.1f%%) | Breakout: %s",
+"?? Dragon Analysis | Angle: %.1fï¿½ | Trend: %s | Squeeze: %s (%.1f%%) | Breakout: %s",
 dragonAngle,
 TrendDirectionToString(trendDirection),
 isDragonSqueeze ? "YES" : "NO",
@@ -105,20 +106,20 @@ class CEnhancedDragonBandAnalyzer
 private:
 // Indicator Handles (3-EMA System as per Sonic R)
 int m_handleHigh;                      // EMA 34 on HIGH prices
-int m_handleLow;                       // EMA 34 on LOW prices  
+int m_handleLow;                       // EMA 34 on LOW prices
 int m_handleClose;                     // EMA 34 on CLOSE prices
 int m_handleTrend89;                   // EMA 89 for trend filter
 
 // Indicator Buffers - ?? FIXED: Convert to dynamic arrays to fix ArraySetAsSeries warnings
 double m_emaHigh[];
 double m_emaLow[];
-double m_emaClose[]; 
+double m_emaClose[];
 double m_emaTrend89[];
 
 // Dragon Parameters
 int m_dragonPeriod;                    // EMA period (default 34)
 int m_trendPeriod;                     // Trend EMA period (default 89)
-double m_angleThreshold;               // Minimum angle for trend (default 2.0°)
+double m_angleThreshold;               // Minimum angle for trend (default 2.0ï¿½)
 
 // ?? SQUEEZE DETECTION PARAMETERS (Boss's missing feature)
 double m_normalBandWidth;              // Average band width over 20 bars
@@ -229,8 +230,8 @@ return false;
 // m_handleTrend89 = iMA(symbol, PERIOD_CURRENT, m_trendPeriod, 0, MODE_EMA, PRICE_CLOSE);
 
 // NEW CODE (UNIFIED SYSTEM):
-bool success = manager.SetupDragonBandIndicators(symbol, timeframe, 
-m_handleHigh, m_handleLow, 
+bool success = manager.SetupDragonBandIndicators(symbol, timeframe,
+m_handleHigh, m_handleLow,
 m_handleClose, m_handleTrend89);
 
 if(!success) {
@@ -240,7 +241,7 @@ return false;
 
 // Log migration success
 manager.MigrateLegacyIndicatorCalls(
-"Analysis_DragonBandAnalyzer_Enhanced.mqh", 
+"Analysis_DragonBandAnalyzer_Enhanced.mqh",
 208,
 "4x iMA() calls for Dragon Band setup",
 "SetupDragonBandIndicators() unified call"
@@ -460,9 +461,9 @@ double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
 double midpoint = (m_emaHigh[0] + m_emaLow[0]) / 2.0;
 
 if(currentPrice > midpoint && m_currentAnalysis.dragonAngle > 0) {
-Print("?? BULLISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "°");
+Print("?? BULLISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "ï¿½");
 } else if(currentPrice < midpoint && m_currentAnalysis.dragonAngle < 0) {
-Print("?? BEARISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "°");
+Print("?? BEARISH DRAGON BREAKOUT | Angle: ", DoubleToString(m_currentAnalysis.dragonAngle, 1), "ï¿½");
 }
 }
 }
@@ -531,31 +532,31 @@ m_currentAnalysis.pullbackQuality = pullbackQuality;
 //+------------------------------------------------------------------+
 bool IsPullbackZoneEnhanced()
 {
-    // Tính toán v? trí giá trong d?i Dragon
+    // Tï¿½nh toï¿½n v? trï¿½ giï¿½ trong d?i Dragon
     double dragonWidth = m_currentAnalysis.emaHigh - m_currentAnalysis.emaLow;
     if(dragonWidth <= 0) {
         Print("?? [PHASE 2] Dragon width invalid, fallback: no pullback zone");
         return false; // Fallback khi thi?u d? li?u
     }
-    
+
     double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
     double pricePosition = (currentPrice - m_currentAnalysis.emaLow) / dragonWidth;
-    
-    // Xác d?nh pullback zone (20%-40% ho?c 60%-80%) theo review.txt
+
+    // Xï¿½c d?nh pullback zone (20%-40% ho?c 60%-80%) theo review.txt
     bool inPullbackZone = ((pricePosition >= 0.2 && pricePosition <= 0.4) ||
                           (pricePosition >= 0.6 && pricePosition <= 0.8));
-    
+
     // Co ch? early entry khi momentum m?nh
     if(inPullbackZone && IsStrongMomentum()) {
         Print("? [PHASE 2] Early entry: Strong momentum + pullback zone at ", DoubleToString(pricePosition*100, 1), "%");
         return true;
     }
-    
-    // Log lý do vào l?nh theo yêu c?u review.txt
+
+    // Log lï¿½ do vï¿½o l?nh theo yï¿½u c?u review.txt
     if(inPullbackZone) {
         Print("? [PHASE 2] Pullback zone detected at ", DoubleToString(pricePosition*100, 1), "% of Dragon Band");
     }
-    
+
     return inPullbackZone;
 }
 
@@ -565,20 +566,20 @@ bool IsPullbackZoneEnhanced()
 double CalculatePullbackQuality()
 {
     if(!m_currentAnalysis.isPullbackZone) return 0.0;
-    
+
     double quality = 0.5; // Base quality
-    
+
     // Factor 1: Price position within optimal zones
     double pricePos = m_currentAnalysis.pricePosition;
     if((pricePos >= 0.2 && pricePos <= 0.4) || (pricePos >= 0.6 && pricePos <= 0.8)) {
         quality += 0.3;
     }
-    
+
     // Factor 2: Trend strength confirmation
     if(m_currentAnalysis.trendStrength > 0.6) {
         quality += 0.2;
     }
-    
+
     return MathMin(1.0, quality);
 }
 
@@ -589,7 +590,7 @@ bool IsStrongMomentum()
 {
     // Strong Dragon angle indicates momentum
     bool strongAngle = (MathAbs(m_currentAnalysis.dragonAngle) > 8.0);
-    
+
     // EMA confirmation
     bool emaConfirmation = false;
     if(m_currentAnalysis.trendDirection == TREND_UP && m_currentAnalysis.emaClose > m_currentAnalysis.emaTrend89) {
@@ -598,7 +599,7 @@ bool IsStrongMomentum()
     else if(m_currentAnalysis.trendDirection == TREND_DOWN && m_currentAnalysis.emaClose < m_currentAnalysis.emaTrend89) {
         emaConfirmation = true;
     }
-    
+
     return strongAngle && emaConfirmation;
 }
 

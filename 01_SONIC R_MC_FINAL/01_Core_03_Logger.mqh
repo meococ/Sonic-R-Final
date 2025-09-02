@@ -12,6 +12,7 @@
 #include "01_Core_22_SonicEnums.mqh"
 // #include "01_Core_16_EnumHelpers.mqh" // Already included in MasterIncludes after all enums
 #include "01_Core_08_ContextManager.mqh" // For CEaContext
+#include "01_Core_03_DebugHelpers.mqh"   // For __isBT/DebugPermit
 
 // External reference to global context
 // extern CEaContext g_Context; // PHASE 3 FIX: Commented out - not used
@@ -81,43 +82,7 @@ void                ProcessTelegramQueue()
 
 public:
 // --- Constructor & Destructor ---
-CLogger();
-~CLogger();
-
-// --- Initialization & Cleanup Methods ---
-bool                Initialize();
-void                Deinitialize();
-bool                IsInitialized() const { return m_initialized; }
-void                OnTick() { ProcessTelegramQueue(); }
-
-// --- Main Logging Methods ---
-void                Log(const ENUM_LOG_LEVEL level, const string message, const string tags = NULL);
-void                Info(const string message, const string tags = NULL) { Log(LOGLEVEL_INFO, message, tags); }
-void                Debug(const string message, const string tags = NULL) { Log(LOGLEVEL_DEBUG, message, tags); }
-void                Warning(const string message, const string tags = NULL) { Log(LOGLEVEL_WARNING, message, tags); }
-void                Error(const string message, const string tags = NULL) { Log(LOGLEVEL_ERROR, message, tags); }
-
-// --- Alias Methods for Compatibility ---
-void                LogInfo(const string message, const string tags = "") { Info(message, tags); }
-void                LogDebug(const string message, const string tags = "") { Debug(message, tags); }
-void                LogWarning(const string message, const string tags = "") { Warning(message, tags); }
-void                LogError(const string message, const string tags = "") { Error(message, tags); }
-
-// --- Utility Methods ---
-string              GetLogFileName() const { return m_log_file_name; }
-void                SetLogLevel(const ENUM_LOG_LEVEL level) { m_log_level = level; }
-ENUM_LOG_LEVEL      GetLogLevel() const { return m_log_level; }
-
-// --- Telegram controls ---
-void                EnableTelegram(bool enable) { m_enable_telegram = enable; }
-void                SetTelegramCredentials(const string bot, const string chat) { m_telegram_bot_token = bot; m_telegram_chat_id = chat; }
-void                QueueTelegram(const string &msg, bool important=false) { EnqueueTelegram(msg, important); }
-};
-
-//+------------------------------------------------------------------+
-//| Constructor - Initialize safe default state                     |
-//+------------------------------------------------------------------+
-CLogger::CLogger() : 
+CLogger() :
 m_log_level(LOGLEVEL_INFO),
 m_log_output(2), // Console output
 m_enable_telegram(false),
@@ -133,18 +98,13 @@ m_initialized(false)
 	m_tgHead = 0; m_tgTail = 0; m_tgNextAllowed = 0; m_tgBackoffSec = 1;
 }
 
-//+------------------------------------------------------------------+
-//| Destructor - Cleanup before object destruction                  |
-//+------------------------------------------------------------------+
-CLogger::~CLogger() 
+~CLogger()
 {
 Deinitialize();
 }
 
-//+------------------------------------------------------------------+
-//| Initialize - Setup Logger with default configuration            |
-//+------------------------------------------------------------------+
-bool CLogger::Initialize()
+// --- Initialization & Cleanup Methods ---
+bool                Initialize()
 {
 if (m_initialized) return true;
 
@@ -161,7 +121,7 @@ if (m_log_output == 1 || m_log_output == 3) // FILE or BOTH
 {
 string date_str = TimeToString(TimeCurrent(), TIME_DATE);
 StringReplace(date_str, ".", "");
-m_log_file_name = "Logs\\" + m_order_comment + "_" + m_symbol_name + "_" + date_str + ".log";
+m_log_file_name = "Logs" + m_order_comment + "_" + m_symbol_name + "_" + date_str + ".log";
 
 m_log_file_handle = FileOpen(m_log_file_name, FILE_WRITE | FILE_TXT | FILE_ANSI | FILE_SHARE_READ);
 
@@ -181,10 +141,7 @@ Info("Logger initialized successfully");
 return true;
 }
 
-//+------------------------------------------------------------------+
-//| Deinitialize logger and cleanup resources                        |
-//+------------------------------------------------------------------+
-void CLogger::Deinitialize()
+void                Deinitialize()
 {
     if (!m_initialized) return;
 
@@ -209,14 +166,25 @@ void CLogger::Deinitialize()
 
     Print("Logger deinitialized successfully");
 }
+bool                IsInitialized() const { return m_initialized; }
+void                OnTick() { ProcessTelegramQueue(); }
 
-//+------------------------------------------------------------------+
-//| Main logging function - handles all log output                   |
-//+------------------------------------------------------------------+
-void CLogger::Log(const ENUM_LOG_LEVEL level, const string message, const string tags = NULL)
+// --- Main Logging Methods ---
+void                Log(const ENUM_LOG_LEVEL level, const string message, const string tags = NULL)
 {
     if (!m_initialized) return;
     if (level < m_log_level) return; // Skip if below current log level
+
+    // Backtest log guard: honor EA backtest logging mode
+    if(__isBT()){
+        if(InpBacktestLogMode==BT_LOG_OFF) return;
+        if(InpBacktestLogMode==BT_LOG_M15_ONLY){
+            datetime bt=iTime(_Symbol, InpLogBarTF, 0);
+            static datetime __last=0; if(bt==__last) return; __last=bt;
+        } else if(InpBacktestLogMode==BT_LOG_COMPACT){
+            if(!DebugPermit()) return;
+        }
+    }
 
     // Format timestamp
     string timestamp = TimeToString(TimeCurrent(), TIME_DATE | TIME_SECONDS);
@@ -260,41 +228,39 @@ void CLogger::Log(const ENUM_LOG_LEVEL level, const string message, const string
         }
     }
 }
+void                Info(const string message, const string tags = NULL) { Log(LOGLEVEL_INFO, message, tags); }
+void                Debug(const string message, const string tags = NULL) { Log(LOGLEVEL_DEBUG, message, tags); }
+void                Warning(const string message, const string tags = NULL) { Log(LOGLEVEL_WARNING, message, tags); }
+void                Error(const string message, const string tags = NULL) { Log(LOGLEVEL_ERROR, message, tags); }
 
-//+------------------------------------------------------------------+
-//| Write message to log file                                        |
-//+------------------------------------------------------------------+
-void CLogger::WriteToFile(const string& formatted_message) const
+// --- Alias Methods for Compatibility ---
+void                LogInfo(const string message, const string tags = "") { Info(message, tags); }
+void                LogDebug(const string message, const string tags = "") { Debug(message, tags); }
+void                LogWarning(const string message, const string tags = "") { Warning(message, tags); }
+void                LogError(const string message, const string tags = "") { Error(message, tags); }
+
+// --- Utility Methods ---
+string              GetLogFileName() const { return m_log_file_name; }
+void                SetLogLevel(const ENUM_LOG_LEVEL level) { m_log_level = level; }
+ENUM_LOG_LEVEL      GetLogLevel() const { return m_log_level; }
+
+// --- Telegram controls ---
+void                EnableTelegram(bool enable) { m_enable_telegram = enable; }
+void                SetTelegramCredentials(const string bot, const string chat) { m_telegram_bot_token = bot; m_telegram_chat_id = chat; }
+void                QueueTelegram(const string &msg, bool important=false) { EnqueueTelegram(msg, important); }
+
+// Safe setter using global config if provided
+void                ApplyGlobalTelegramConfig()
 {
-    if (m_log_file_handle == INVALID_HANDLE) return;
-
-    FileWriteString(m_log_file_handle, formatted_message + "\n");
-    FileFlush(m_log_file_handle);
+  if(StringLen(g_TelegramBotToken)>0 && StringLen(g_TelegramChatId)>0)
+  {
+    m_enable_telegram = InpTelegramEnabled; // still controlled by input enable
+    m_telegram_important_only = InpTelegramImportantOnly;
+    m_telegram_bot_token = g_TelegramBotToken;
+    m_telegram_chat_id = g_TelegramChatId;
+  }
 }
 
-//+------------------------------------------------------------------+
-//| Get string representation of log level                           |
-//+------------------------------------------------------------------+
-string CLogger::GetLogLevelString(const ENUM_LOG_LEVEL level) const
-{
-    switch(level)
-    {
-        case LOGLEVEL_DEBUG:   return "[DEBUG]";
-        case LOGLEVEL_INFO:    return "[INFO] ";
-        case LOGLEVEL_WARNING: return "[WARN] ";
-        case LOGLEVEL_ERROR:   return "[ERROR]";
-        default:               return "[UNKNOWN]";
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Send message to Telegram (stub implementation)                   |
-//+------------------------------------------------------------------+
-bool CLogger::SendTelegramMessage(const string& formatted_message, const bool important) const
-{
-    // Stub implementation - would need actual Telegram API integration
-    // For now, just return true to avoid queue buildup
-    return true;
-}
+};
 
 #endif // CORE_LOGGER_MQH

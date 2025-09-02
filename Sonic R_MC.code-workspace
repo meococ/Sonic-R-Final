@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../../../Tester/D0E8209F77C8CF37AD8BF550E51FF075"
+		}
+	],
+	"settings": {
+		"chat.agent.maxRequests": 250
+	}
+}

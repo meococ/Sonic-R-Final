@@ -11,31 +11,32 @@
 #include "02_DataProviders_05_IndicatorManager.mqh"
 #include "01_Core_21_ErrorConstants_Clean.mqh"
 
+#include "01_Core_17_Utils.mqh"
 //+------------------------------------------------------------------+
 //| ?? UNIFIED EMA CALCULATOR - ELIMINATES DUPLICATION               |
 //+------------------------------------------------------------------+
 /**
 * @brief High-performance EMA calculation engine for Dragon Band system
-* 
+*
 * This class centralizes all EMA calculations to eliminate code duplication
 * across the Dragon Band system. It provides optimized bulk operations
 * for the 3-EMA Dragon Band methodology (HIGH, LOW, CLOSE + trend filter).
-* 
+*
 * @details Key Features:
 *          - Eliminates 5+ duplicate EMA calculation patterns
 *          - Bulk operations for optimal performance
 *          - Automatic handle management and cleanup
 *          - Support for multiple timeframes
 *          - Sonic R 3-EMA system implementation
-* 
+*
 * @performance Typical execution times:
 *              - Initialize(): 5-10ms one-time setup
 *              - CalculateDragonEMAs(): 1-3ms for 50 values
 *              - GetCurrentEMAs(): <1ms for single values
-* 
+*
 * @threadsafety This class is NOT thread-safe. Use separate instances
 *               for different threads.
-* 
+*
 * @example Basic usage:
 * @code
 * CEMACalculator* calc = new CEMACalculator();
@@ -47,7 +48,7 @@
 * }
 * delete calc;
 * @endcode
-* 
+*
 * @see CUnifiedDragonBandAnalyzer, SUnifiedDragonData
 */
 class CEMACalculator
@@ -55,7 +56,7 @@ class CEMACalculator
 private:
 struct EMAHandles {
 int high;
-int low;  
+int low;
 int close;
 int trend89;
 bool valid;
@@ -69,7 +70,7 @@ valid = false;
 }
 
 bool IsValid() {
-return (high != INVALID_HANDLE && low != INVALID_HANDLE && 
+return (high != INVALID_HANDLE && low != INVALID_HANDLE &&
 close != INVALID_HANDLE && trend89 != INVALID_HANDLE);
 }
 
@@ -103,39 +104,39 @@ m_handles.Release();
 
 /**
 * @brief Initialize EMA calculator for Dragon Band system
-* 
+*
 * Creates and validates all EMA indicator handles required for Dragon Band
 * analysis following Sonic R methodology. Must be called before any
 * calculation operations.
-* 
+*
 * @param symbol Trading symbol [any valid MT5 symbol] (example: "EURUSD")
 * @param timeframe Chart timeframe [PERIOD_M1 to PERIOD_MN1] (default: PERIOD_CURRENT)
 * @param dragonPeriod EMA period for Dragon Band [5-200] (default: 34 - Sonic R standard)
 * @param trendPeriod EMA period for trend filter [10-500] (default: 89 - Sonic R standard)
-* 
+*
 * @return true if all handles created successfully, false on any failure
 *         - true: Ready for calculations
 *         - false: Handle creation failed, check symbol/timeframe validity
-* 
+*
 * @details SONIC R EXACT IMPLEMENTATION:
 *          - EMA 34 applied to HIGH prices (Dragon Band upper boundary)
 *          - EMA 34 applied to LOW prices (Dragon Band lower boundary)
 *          - EMA 34 applied to CLOSE prices (Dragon Band center line)
 *          - EMA 89 applied to CLOSE prices (major trend direction filter)
 *          - All EMAs use Exponential Moving Average calculation method
-* 
+*
 * @note This implements the EXACT Sonic R Dragon Band specification:
 *       ? EMA 34 period (not 8, 21, 55 from other implementations)
 *       ? 3-EMA system: HIGH, LOW, CLOSE with same period
 *       ? EMA 89 trend filter for direction confirmation
 *       ? Proper handle management with validation
-* 
+*
 * @warning Must call this method before any calculation operations.
 *          Handles are automatically released in destructor.
 *          Do not call multiple times without cleanup.
-* 
+*
 * @see CalculateDragonEMAs(), GetCurrentEMAs(), IsInitialized()
-* 
+*
 * @example Initialize for EURUSD H1 analysis:
 * @code
 * CEMACalculator calc;
@@ -146,7 +147,7 @@ m_handles.Release();
 * Print("EMA calculator ready for perfect Sonic R analysis");
 * @endcode
 */
-bool Initialize(string symbol, ENUM_TIMEFRAMES timeframe = PERIOD_CURRENT, 
+bool Initialize(string symbol, ENUM_TIMEFRAMES timeframe = PERIOD_CURRENT,
 int dragonPeriod = 34, int trendPeriod = 89)
 {
 m_symbol = symbol;
@@ -169,8 +170,8 @@ return false;
 // m_handles.trend89 = iMA(symbol, timeframe, trendPeriod, 0, MODE_EMA, PRICE_CLOSE);
 
 // NEW CODE (UNIFIED SYSTEM) WITH ERROR 4014 PROTECTION:
-bool success = manager.SetupDragonBandIndicators(symbol, timeframe, 
-m_handles.high, m_handles.low, 
+bool success = manager.SetupDragonBandIndicators(symbol, timeframe,
+m_handles.high, m_handles.low,
 m_handles.close, m_handles.trend89);
 
 if(!success) {
@@ -210,11 +211,11 @@ return true;
 
 /**
 * @brief Fallback EMA initialization for ERROR 4014 recovery
-* 
+*
 * When the unified system fails with error 4014 (ERR_UNKNOWN_COMMAND),
 * this fallback method attempts direct EMA creation with additional
 * error checking and data validation.
-* 
+*
 * @param symbol Trading symbol
 * @param timeframe Chart timeframe
 * @param dragonPeriod Dragon Band EMA period (default: 34)
@@ -295,44 +296,44 @@ return false;
 
 /**
 * @brief Calculate Dragon Band EMAs using optimized bulk operations
-* 
+*
 * Performs high-performance bulk calculation of all Dragon Band EMA values
 * in a single operation. This eliminates the need for individual EMA calls
 * and provides optimal performance for real-time analysis.
-* 
+*
 * @param emaHigh Output array for EMA High values [will be resized automatically]
-* @param emaLow Output array for EMA Low values [will be resized automatically]  
+* @param emaLow Output array for EMA Low values [will be resized automatically]
 * @param emaClose Output array for EMA Close values [will be resized automatically]
 * @param emaTrend89 Output array for trend EMA values [will be resized automatically]
 * @param count Number of values to retrieve [1-1000] (default: 50)
-* 
+*
 * @return true if all calculations successful, false on any failure
 *         - true: All arrays populated with requested data
 *         - false: Insufficient data or handle invalid
-* 
+*
 * @details Bulk operation process:
 *          1. Validate all EMA handles are ready
 *          2. Copy EMA High buffer (Dragon Band upper boundary)
-*          3. Copy EMA Low buffer (Dragon Band lower boundary) 
+*          3. Copy EMA Low buffer (Dragon Band lower boundary)
 *          4. Copy EMA Close buffer (Dragon Band center line)
 *          5. Copy trend EMA buffer (major trend filter)
 *          6. Verify all copy operations successful
-* 
+*
 * @performance This bulk operation is 5-10x faster than individual calls:
 *              - Individual calls: ~50ms for 50 values
 *              - Bulk operation: ~5ms for 50 values
 *              - Memory efficient: Single allocation per array
-* 
+*
 * @note Arrays are automatically set to series indexing (newest first).
 *       Index [0] = current bar, [1] = previous bar, etc.
 *       All arrays will have identical size and indexing.
-* 
+*
 * @warning Requires successful Initialize() call first.
 *          Large count values may impact performance.
 *          Insufficient historical data will cause failure.
-* 
+*
 * @see Initialize(), GetCurrentEMAs(), IsInitialized()
-* 
+*
 * @example Calculate last 20 Dragon Band values:
 * @code
 * double emaHigh[], emaLow[], emaClose[], emaTrend[];
@@ -346,7 +347,7 @@ return false;
 * }
 * @endcode
 */
-bool CalculateDragonEMAs(double &emaHigh[], double &emaLow[], 
+bool CalculateDragonEMAs(double &emaHigh[], double &emaLow[],
 double &emaClose[], double &emaTrend89[], int count = 50)
 {
 if(!m_handles.valid) return false;
@@ -395,31 +396,31 @@ ENUM_TIMEFRAMES GetTimeframe() const { return m_timeframe; }
 //+------------------------------------------------------------------+
 /**
 * @brief Comprehensive Dragon Band analysis data structure
-* 
+*
 * This unified structure consolidates all Dragon Band analysis results,
-* eliminating the duplication between SDragonBandAnalysis and 
+* eliminating the duplication between SDragonBandAnalysis and
 * SEnhancedDragonBandData. Contains complete Sonic R methodology
 * implementation with advanced features.
-* 
+*
 * @details Data Categories:
 *          - Core EMA Values: 3-EMA system + trend filter
-*          - Dragon Metrics: Angle, slope, band width analysis  
+*          - Dragon Metrics: Angle, slope, band width analysis
 *          - Squeeze Detection: Complete breakout analysis
 *          - Trend Analysis: Direction, strength, probability
 *          - Multi-timeframe: H1, M15, M5 analysis
 *          - Quality Metrics: Confidence, validation, scoring
-* 
+*
 * @usage This structure is populated by CUnifiedDragonBandAnalyzer
 *        and provides complete Dragon Band state information for
 *        signal generation and risk management decisions.
-* 
+*
 * @performance Memory footprint: ~200 bytes per instance
 *              Calculation time: <1ms for complete update
 *              Cache efficiency: 15-second refresh cycles
-* 
+*
 * @validation Use ValidateData() method to ensure data integrity
 *             before using for trading decisions.
-* 
+*
 * @example Access Dragon Band analysis results:
 * @code
 * SUnifiedDragonData data = analyzer.GetCurrentData();
@@ -434,14 +435,14 @@ ENUM_TIMEFRAMES GetTimeframe() const { return m_timeframe; }
 *     Print("Overall score: ", data.score);
 * }
 * @endcode
-* 
+*
 * @see CUnifiedDragonBandAnalyzer, CEMACalculator, ENUM_DRAGON_STATE
 */
 struct SUnifiedDragonData
 {
 // Core Dragon Band Values (3-EMA System)
 double emaHigh;                        // EMA 34 on HIGH
-double emaLow;                         // EMA 34 on LOW  
+double emaLow;                         // EMA 34 on LOW
 double emaClose;                       // EMA 34 on CLOSE
 double emaTrend89;                     // EMA 89 trend filter
 
@@ -485,11 +486,11 @@ int validationFlags;                   // FIXED: Add missing validation flags
 
 /**
 * @brief Reset all Dragon Band data to initial state
-* 
+*
 * Initializes all structure members to safe default values,
 * preparing the structure for new analysis data. Should be
 * called before populating with fresh analysis results.
-* 
+*
 * @details Reset operations:
 *          - Core EMAs: Set to 0.0 (invalid state)
 *          - Dragon metrics: Reset angles, slopes, widths
@@ -498,24 +499,24 @@ int validationFlags;                   // FIXED: Add missing validation flags
 *          - Multi-timeframe: Clear all MTF data
 *          - Quality metrics: Reset confidence and scores
 *          - Metadata: Clear timestamps and validity flags
-* 
+*
 * @note This method ensures clean state for analysis cycles.
 *       All data becomes invalid until repopulated by analyzer.
 *       Use this method when reinitializing or recovering from errors.
-* 
+*
 * @performance Execution time: <0.1ms (simple member assignment)
 *              Memory impact: None (no allocations)
-* 
+*
 * @see ValidateData(), GetDetailedReport()
-* 
+*
 * @example Reset before new analysis cycle:
 * @code
 * SUnifiedDragonData data;
 * data.Reset();  // Clean state
-* 
+*
 * // Populate with fresh analysis...
 * analyzer.PopulateData(data);
-* 
+*
 * if(data.ValidateData()) {
 *     // Use validated data for trading decisions
 * }
@@ -561,39 +562,39 @@ score = 0.0;
 
 /**
 * @brief Generate comprehensive Dragon Band analysis report
-* 
+*
 * Creates a detailed, formatted string containing all key Dragon Band
 * metrics and analysis results. Designed for logging, debugging, and
 * real-time monitoring of Dragon Band system performance.
-* 
+*
 * @return Formatted analysis string containing:
 *         - Dragon angle in degrees with trend direction
 *         - Squeeze status with intensity percentage
-*         - Breakout readiness assessment  
+*         - Breakout readiness assessment
 *         - Multi-timeframe score (if available)
 *         - Overall confidence and score ratings
 *         - Current Dragon state information
-* 
+*
 * @details Report format example:
-*          "?? Unified Dragon | Angle: +3.2° | Trend: BULLISH | 
+*          "?? Unified Dragon | Angle: +3.2ï¿½ | Trend: BULLISH |
 *           Squeeze: YES (85%) | MTF: 0.742 | Score: 0.867 | Confidence: 91%"
-* 
+*
 * @note This method provides human-readable summary of complex analysis data.
 *       Report generation is lightweight and suitable for real-time use.
 *       All values are formatted for easy interpretation.
-* 
+*
 * @performance Execution time: <0.5ms (string formatting)
 *              Memory usage: ~200 bytes temporary string allocation
-* 
+*
 * @see Reset(), ValidateData(), GetPerformanceReport()
-* 
+*
 * @example Generate report for logging:
 * @code
 * SUnifiedDragonData data = analyzer.GetCurrentData();
 * if(data.isValid) {
 *     string report = data.GetDetailedReport();
 *     Print("Dragon Analysis: ", report);
-*     
+*
 *     // Log to file for historical analysis
 *     LogToFile("dragon_analysis.log", report);
 * }
@@ -602,7 +603,7 @@ score = 0.0;
 string GetDetailedReport()
 {
 return StringFormat(
-"?? Unified Dragon | Angle: %.1f° | Trend: %s | Squeeze: %s (%.1f%%) | MTF: %.3f | Score: %.3f | Confidence: %.1f%%",
+"?? Unified Dragon | Angle: %.1fï¿½ | Trend: %s | Squeeze: %s (%.1f%%) | MTF: %.3f | Score: %.3f | Confidence: %.1f%%",
 dragonAngle,
 TrendDirectionToString(trendDirection),
 isDragonSqueeze ? "YES" : "NO",
@@ -636,40 +637,40 @@ return true;
 //+------------------------------------------------------------------+
 /**
 * @brief Complete Dragon Band analysis system following Sonic R methodology
-* 
+*
 * This unified class consolidates all Dragon Band analysis functionality,
 * eliminating duplication across 4 separate classes. Implements the complete
 * Sonic R Dragon Band system with advanced features including squeeze detection,
 * multi-timeframe analysis, and intelligent caching.
-* 
+*
 * @details Key Features:
 *          - Sonic R 3-EMA System: EMA 34 on HIGH, LOW, CLOSE + EMA 89 trend
-*          - Dragon Angle Calculation: Exact Sonic R formula with 2° threshold
+*          - Dragon Angle Calculation: Exact Sonic R formula with 2ï¿½ threshold
 *          - Squeeze Detection: Band contraction analysis for breakout signals
 *          - Multi-timeframe Support: H1(50%), M15(30%), M5(20%) weighting
 *          - Performance Optimization: Intelligent caching and bulk operations
 *          - Error Handling: Comprehensive bounds checking and validation
-* 
+*
 * @architecture Single Responsibility: Dragon Band analysis only
 *               Dependency Injection: Uses CEMACalculator for calculations
 *               Observer Pattern: Provides real-time analysis updates
 *               Strategy Pattern: Supports multiple analysis strategies
-* 
+*
 * @performance Typical execution times:
 *              - Initialize(): 20-50ms one-time setup
 *              - UpdateAnalysis(): 3-8ms per update (cached)
 *              - GetDragonBandScore(): <1ms (cached access)
 *              - Memory usage: ~2KB per instance
-* 
+*
 * @threadsafety This class is NOT thread-safe. Use separate instances
 *               for different threads or implement external synchronization.
-* 
+*
 * @lifecycle 1. Constructor: Initialize all members to safe defaults
 *            2. Initialize(): Create EMA calculators and validate setup
 *            3. UpdateAnalysis(): Perform real-time analysis (call from OnTick)
 *            4. Get methods: Access analysis results
 *            5. Destructor: Cleanup resources automatically
-* 
+*
 * @example Complete usage pattern:
 * @code
 * // Create and initialize analyzer
@@ -679,7 +680,7 @@ return true;
 *     delete analyzer;
 *     return;
 * }
-* 
+*
 * // Use in OnTick() for real-time analysis
 * void OnTick() {
 *     if(analyzer.UpdateAnalysis()) {
@@ -687,7 +688,7 @@ return true;
 *         if(score > 0.75) {  // High-confidence signal
 *             SUnifiedDragonData data = analyzer.GetCurrentData();
 *             Print("Dragon Signal: ", data.GetDetailedReport());
-*             
+*
 *             if(data.isDragonSqueeze && data.isBreakoutReady) {
 *                 Print("Breakout setup detected!");
 *                 // Execute trading logic here
@@ -695,11 +696,11 @@ return true;
 *         }
 *     }
 * }
-* 
+*
 * // Cleanup when done
 * delete analyzer;
 * @endcode
-* 
+*
 * @see CEMACalculator, SUnifiedDragonData, Analysis_MasterOrchestrator.mqh
 */
 class CUnifiedDragonBandAnalyzer
@@ -719,7 +720,7 @@ double m_emaTrend89[];
 // Dragon configuration
 int m_dragonPeriod;                    // EMA period (default 34)
 int m_trendPeriod;                     // Trend EMA period (default 89)
-double m_angleThreshold;               // Minimum angle for trend (default 2.0°)
+double m_angleThreshold;               // Minimum angle for trend (default 2.0ï¿½)
 
 // Squeeze detection parameters
 double m_normalBandWidth;              // Average band width over 20 bars
@@ -751,7 +752,7 @@ double m_averageExecutionTime;
 int m_cacheHits;
 int m_cacheMisses;
 
-// PHASE 2: Enhanced Cache System  
+// PHASE 2: Enhanced Cache System
 bool m_cacheValid;
 datetime m_cacheTimestamp;
 SUnifiedDragonData m_cachedAnalysis;
@@ -864,19 +865,19 @@ Print("?? Unified Dragon Band Analyzer destroyed");
 
 /**
 * @brief Initialize unified Dragon Band analysis system
-* 
+*
 * Performs complete system initialization including EMA calculators,
 * multi-timeframe setup, and validation. Must be called before any
 * analysis operations. Creates all necessary resources for Dragon Band
 * analysis following Sonic R methodology.
-* 
+*
 * @param symbol Trading symbol [any valid MT5 symbol] (NULL = current symbol)
 * @param timeframe Primary analysis timeframe [PERIOD_M1 to PERIOD_MN1] (PERIOD_CURRENT = current chart)
-* 
+*
 * @return true if complete initialization successful, false on any failure
 *         - true: All systems ready for analysis
 *         - false: Check symbol validity, data availability, or MT5 connection
-* 
+*
 * @details Initialization sequence:
 *          1. Validate and store symbol/timeframe parameters
 *          2. Initialize main EMA calculator for primary timeframe
@@ -884,24 +885,24 @@ Print("?? Unified Dragon Band Analyzer destroyed");
 *          4. Calculate baseline band width for squeeze detection
 *          5. Setup performance tracking and caching systems
 *          6. Validate all systems are operational
-* 
+*
 * @note This method implements Sonic R Dragon Band requirements:
 *       - Primary: EMA 34 on HIGH, LOW, CLOSE + EMA 89 trend filter
 *       - Multi-timeframe: H1, M15, M5 for confluence analysis
 *       - Performance: Intelligent caching with 15-second refresh
 *       - Error handling: Comprehensive validation and reporting
-* 
+*
 * @warning Call this method only once per instance.
 *          Subsequent calls may cause resource leaks.
 *          Ensure MT5 terminal is connected and symbol is available.
-* 
+*
 * @performance Initialization time:
 *              - Single timeframe: 10-20ms
 *              - Multi-timeframe: 30-50ms (3 additional timeframes)
 *              - Memory allocation: ~2KB per instance
-* 
+*
 * @see UpdateAnalysis(), GetDragonBandScore(), IsInitialized()
-* 
+*
 * @example Initialize for EURUSD H1 analysis:
 * @code
 * CUnifiedDragonBandAnalyzer analyzer;
@@ -910,7 +911,7 @@ Print("?? Unified Dragon Band Analyzer destroyed");
 *     Print("Check symbol availability and MT5 connection");
 *     return INIT_FAILED;
 * }
-* 
+*
 * Print("Dragon Band analyzer ready for real-time analysis");
 * Print("MTF support: ", analyzer.GetCurrentData().mtfValid ? "ENABLED" : "PARTIAL");
 * @endcode
@@ -951,19 +952,19 @@ return true;
 
 /**
 * @brief Perform real-time Dragon Band analysis with intelligent caching
-* 
+*
 * Core analysis method that should be called from OnTick() for real-time
 * Dragon Band analysis. Implements intelligent caching to minimize
 * computational overhead while ensuring fresh analysis when needed.
-* 
+*
 * @param forceUpdate Force complete analysis regardless of cache status [default: false]
 *                    - true: Bypass cache, perform full analysis
 *                    - false: Use cache if valid (< 15 seconds old)
-* 
+*
 * @return true if analysis completed successfully, false on any error
 *         - true: Fresh analysis data available via GetCurrentData()
 *         - false: Analysis failed, previous data may be stale
-* 
+*
 * @details Analysis workflow:
 *          1. Check cache validity (15-second refresh cycle)
 *          2. Update all EMA indicator buffers via bulk operations
@@ -975,42 +976,42 @@ return true;
 *          8. Calculate multi-timeframe confluence scores
 *          9. Compute overall confidence and final score
 *          10. Update performance metrics and cache
-* 
+*
 * @performance Typical execution times:
 *              - Cache hit: <0.5ms (return cached data)
 *              - Cache miss: 3-8ms (full analysis)
 *              - Average load: 15-25% cache hit rate
 *              - Memory impact: Minimal (reuses arrays)
-* 
+*
 * @note This method implements the complete Sonic R Dragon Band analysis:
 *       - 3-EMA system with exact angle calculation formula
 *       - Squeeze detection with Boss's quality thresholds
 *       - Multi-timeframe confluence (H1: 50%, M15: 30%, M5: 20%)
 *       - Performance optimization through intelligent caching
-* 
+*
 * @warning Must call Initialize() successfully before using this method.
 *          Frequent forced updates may impact performance.
 *          Check return value before using analysis results.
-* 
+*
 * @see Initialize(), GetDragonBandScore(), GetCurrentData()
-* 
+*
 * @example Use in OnTick() for real-time analysis:
 * @code
 * void OnTick() {
 *     static CUnifiedDragonBandAnalyzer analyzer;
 *     static bool initialized = false;
-*     
+*
 *     if(!initialized) {
 *         initialized = analyzer.Initialize(_Symbol);
 *         if(!initialized) return;
 *     }
-*     
+*
 *     if(analyzer.UpdateAnalysis()) {
 *         double score = analyzer.GetDragonBandScore();
 *         if(score > 0.75) {
 *             SUnifiedDragonData data = analyzer.GetCurrentData();
 *             Comment("Dragon Score: ", DoubleToString(score, 3),
-*                    "\nAngle: ", DoubleToString(data.dragonAngle, 1), "°",
+*                    "\nAngle: ", DoubleToString(data.dragonAngle, 1), "ï¿½",
 *                    "\nSqueeze: ", data.isDragonSqueeze ? "YES" : "NO");
 *         }
 *     }
@@ -1025,7 +1026,7 @@ ulong startTime = GetMicrosecondCount();
 
 // Check cache validity
 datetime currentTime = TimeCurrent();
-if(!forceUpdate && m_cacheValid && 
+if(!forceUpdate && m_cacheValid &&
 (currentTime - m_cacheTimestamp) < CACHE_DURATION_SECONDS) {
 m_cacheHits++;
 return true; // Use cached data
@@ -1194,7 +1195,7 @@ m_currentData.trendDirection = TREND_SIDEWAYS;
 m_currentData.trendStrength = 0.2;
 }
 
-// Confirm with EMA 89 trend filter (reuse existing currentPrice variable) 
+// Confirm with EMA 89 trend filter (reuse existing currentPrice variable)
 currentPrice = iClose(m_symbol, m_timeframe, 0);
 if(currentPrice > m_currentData.emaTrend89) {
 if(m_currentData.trendDirection == TREND_BEARISH) {
@@ -1219,7 +1220,7 @@ int ValidateDragonData()
 int validationFlags = 0;
 
 // Flag 1: EMAs are properly ordered (no crossed bands)
-if(m_currentData.emaHigh >= m_currentData.emaClose && 
+if(m_currentData.emaHigh >= m_currentData.emaClose &&
 m_currentData.emaClose >= m_currentData.emaLow) {
 validationFlags |= 1; // Bit 0: Proper EMA ordering
 }
@@ -1316,7 +1317,7 @@ double intensityFactor = m_currentData.squeezeIntensity;
 m_currentData.squeezeQuality = (durationFactor + intensityFactor) / 2.0;
 
 // Assess breakout readiness
-m_currentData.isBreakoutReady = (m_currentData.squeezeQuality > 0.6 && 
+m_currentData.isBreakoutReady = (m_currentData.squeezeQuality > 0.6 &&
 m_currentSqueezeBars >= 3 &&
 MathAbs(m_currentData.dragonAngle) > 1.0);
 
@@ -1475,7 +1476,7 @@ factors[2] = m_currentData.breakoutProbability * 0.20;
 factors[3] = m_currentData.mtfValid ? (m_currentData.mtfScore * 0.20) : 0.0;
 
 // Factor 5: Price position quality (15%)
-double positionQuality = (m_currentData.isPullbackZone) ? m_currentData.pullbackQuality : 
+double positionQuality = (m_currentData.isPullbackZone) ? m_currentData.pullbackQuality :
 (1.0 - MathAbs(m_currentData.pricePosition - 0.5) * 2.0);
 factors[4] = positionQuality * 0.15;
 
@@ -1507,7 +1508,7 @@ if(m_currentData.isDragonSqueeze && m_currentData.squeezeQuality > 0.6) {
 baseScore = MathMin(1.0, baseScore + 0.2);
 }
 
-// Boost for breakout readiness  
+// Boost for breakout readiness
 if(m_currentData.isBreakoutReady) {
 baseScore = MathMin(1.0, baseScore + 0.1);
 }
@@ -1701,18 +1702,18 @@ public:
 
 /**
 * @brief Get Dragon Band score for EA signal generation
-* 
+*
 * Returns the primary Dragon Band analysis score used for signal generation
 * and confluence analysis. This score represents the overall strength and
 * quality of the current Dragon Band setup based on multiple factors.
-* 
+*
 * @return Dragon Band score [0.0 - 1.0]
 *         - 0.0: No signal, poor Dragon Band setup
 *         - 0.1-0.4: Weak signal, low confidence
 *         - 0.5-0.7: Moderate signal, acceptable for confluence
 *         - 0.7-0.9: Strong signal, high confidence trading
 *         - 0.9-1.0: Exceptional signal, maximum confidence
-* 
+*
 * @details Score calculation factors:
 *          1. Base confidence score (40% weight)
 *          2. Squeeze quality bonus (+20% if high-quality squeeze)
@@ -1720,33 +1721,33 @@ public:
 *          4. Multi-timeframe confirmation (+15% if MTF aligned)
 *          5. Pullback quality bonus (+10% if in pullback zone)
 *          6. Volume confirmation (integrated into base score)
-* 
+*
 * @note This is the primary interface for Master Orchestrator integration.
 *       Score is cached and updated only when necessary (15-second cycle).
 *       All Sonic R methodology factors are incorporated into final score.
-* 
+*
 * @warning Returns 0.0 if analysis data is invalid or system not initialized.
 *          Always check IsInitialized() before relying on score values.
-* 
+*
 * @performance Execution time: <1ms (cached access)
 *              Cache efficiency: ~80% hit rate in normal operation
-* 
+*
 * @see GetCurrentData(), GetConfidence(), UpdateAnalysis()
-* 
+*
 * @example Use score for signal generation:
 * @code
 * double dragonScore = analyzer.GetDragonBandScore();
-* 
+*
 * if(dragonScore > 0.75) {
 *     // High-confidence Dragon Band signal
 *     ENUM_TREND_DIRECTION trend = analyzer.GetTrendDirection();
-*     
+*
 *     if(trend == TREND_BULLISH) {
 *         Print("Strong Dragon Band BUY signal: ", dragonScore);
 *         // Execute buy logic
 *     } else if(trend == TREND_BEARISH) {
 *         Print("Strong Dragon Band SELL signal: ", dragonScore);
-*         // Execute sell logic  
+*         // Execute sell logic
 *     }
 * } else if(dragonScore > 0.5) {
 *     Print("Moderate Dragon Band signal for confluence: ", dragonScore);
@@ -1779,6 +1780,18 @@ SDragonBandData GetDragonBandData() const {
     return data;
 }
 
+// Overload to fill output struct by reference (avoids deprecated copy initialization)
+void GetDragonBandData(SDragonBandData &out) const {
+    out.upperBand = m_currentData.emaHigh;
+    out.lowerBand = m_currentData.emaLow;
+    out.middleBand = m_currentData.emaClose;
+    out.state = DRAGON_STABLE;  // Use appropriate dragon state
+    out.trend = m_currentData.trendDirection;
+    out.strength = m_currentData.trendStrength;
+    out.isValid = m_currentData.isValid;
+    out.timestamp = m_currentData.analysisTime;
+}
+
 /**
 * @brief Get specific Dragon Band conditions
 */
@@ -1801,7 +1814,7 @@ datetime GetLastUpdate() const { return m_lastUpdate; }
 */
 string GetPerformanceReport()
 {
-double cacheEfficiency = (m_cacheHits + m_cacheMisses > 0) ? 
+double cacheEfficiency = (m_cacheHits + m_cacheMisses > 0) ?
 ((double)m_cacheHits / (m_cacheHits + m_cacheMisses) * 100.0) : 0.0;
 
 return StringFormat(
@@ -1834,50 +1847,50 @@ return m_currentData.GetDetailedReport();
 
 /**
 * @brief Calculate Dragon Angle using exact Sonic R formula
-* 
+*
 * Calculates the Dragon Band angle using the precise Sonic R methodology
 * for trend strength assessment. This is the core metric for Dragon Band
 * analysis and must be calculated with mathematical precision.
-* 
+*
 * @param emaCloseBuffer EMA Close values array [minimum 5 values required]
 * @param lookbackBars Number of bars for angle calculation [default: 4 bars]
-* 
+*
 * @return Dragon angle in degrees [-90.0 to +90.0]
 *         - Positive values: Upward trending Dragon
 *         - Negative values: Downward trending Dragon
-*         - Values > +5°: Strong bullish trend
-*         - Values < -5°: Strong bearish trend
-*         - Values between -2° to +2°: Sideways/weak trend
-* 
+*         - Values > +5ï¿½: Strong bullish trend
+*         - Values < -5ï¿½: Strong bearish trend
+*         - Values between -2ï¿½ to +2ï¿½: Sideways/weak trend
+*
 * @details SONIC R EXACT ANGLE FORMULA:
 *          1. Calculate price change: deltaPrice = EMA[0] - EMA[lookback]
 *          2. Calculate time change: deltaBars = lookback bars
 *          3. Calculate slope: slope = deltaPrice / deltaBars
 *          4. Convert to visual angle using screen pixels scaling
-*          5. Apply arctangent function: angle = atan(slope × scale)
-*          6. Convert radians to degrees: angle × (180/p)
-*          7. Clamp result between -90° and +90°
-* 
+*          5. Apply arctangent function: angle = atan(slope ï¿½ scale)
+*          6. Convert radians to degrees: angle ï¿½ (180/p)
+*          7. Clamp result between -90ï¿½ and +90ï¿½
+*
 * @note SONIC R SCALING FACTORS (Critical for accuracy):
 *       - Pixels per bar: 5.0 (standard chart scaling)
 *       - Pixels per price unit: 100,000 (for major pairs)
 *       - These values ensure angles match visual chart appearance
-*       - Angle > 2° threshold indicates significant trend strength
-* 
+*       - Angle > 2ï¿½ threshold indicates significant trend strength
+*
 * @performance Execution time: <0.5ms (optimized calculation)
-* 
+*
 * @warning Requires minimum 5 EMA values for accurate calculation.
 *          Invalid or insufficient data returns 0.0 degrees.
-* 
+*
 * @see UpdateAnalysis(), GetDragonBandScore(), CalculateDragonMetrics()
-* 
+*
 * @example Calculate current Dragon angle:
 * @code
 * double emaClose[10];
 * // ... populate emaClose array ...
 * double angle = CalculatePerfectDragonAngle(emaClose, 4);
 * if(MathAbs(angle) > 5.0) {
-*     Print("Strong Dragon trend detected: ", angle, "°");
+*     Print("Strong Dragon trend detected: ", angle, "ï¿½");
 * }
 * @endcode
 */
@@ -1925,7 +1938,7 @@ double emaCloseArray[];
 ArrayResize(emaCloseArray, 10);
 ArraySetAsSeries(emaCloseArray, true);
 
-// ?? PHASE 2: Get EMA values via unified system  
+// ?? PHASE 2: Get EMA values via unified system
 CUnifiedIndicatorManager* manager = CUnifiedIndicatorManager::GetInstance();
 
 if(manager == NULL) return 0.0;

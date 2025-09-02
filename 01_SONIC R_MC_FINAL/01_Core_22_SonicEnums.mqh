@@ -6,6 +6,8 @@
 #ifndef CORE_06_SONIC_ENUMS_MQH
 #define CORE_06_SONIC_ENUMS_MQH
 
+#include "01_Core_14_CoreEnums.mqh"
+
 //+------------------------------------------------------------------+
 //| TRADING STRATEGY ENUMERATIONS                                    |
 //+------------------------------------------------------------------+
@@ -17,7 +19,23 @@ enum ENUM_TRADING_STRATEGY
     STRATEGY_SCOUT_RANGE = 3,             // Scout range trading
     STRATEGY_MULTI_ASSET = 4,             // Multi-asset adaptive
     STRATEGY_CUSTOM = 5,                  // Custom strategy
+    STRATEGY_NONE = 6,                    // Debug only: no strategy forced / no selection
 };
+
+// High-level profile selector for Minimal Core UI
+enum ENUM_STRATEGY_PROFILE
+{
+    PROFILE_AUTO = 0,           // Use existing mapping (InpTradingStrategy → scenario)
+    PROFILE_BASIC = 1,          // Kịch bản 5 làm cơ bản (Multi-Asset Balanced)
+    PROFILE_SONIC_BASE = 2,     // Kịch bản 1: Sonic Base
+    PROFILE_SONIC_VPSRA = 3,    // Kịch bản 2: Sonic + VPSRA
+    PROFILE_SCOUT = 4,          // Kịch bản 3: Scout
+    PROFILE_MULTI_ASSET = 5     // Kịch bản 5: Multi-Asset Adaptive đầy đủ
+};
+
+
+// PROP FIRM TYPES already defined in 01_Core_14_CoreEnums.mqh as ENUM_PROP_FIRM
+// Use ENUM_PROP_FIRM instead of ENUM_PROP_FIRM_TYPE to avoid duplicates
 
 //+------------------------------------------------------------------+
 //| LOG LEVEL ENUMERATIONS                                           |

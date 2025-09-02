@@ -11,6 +11,8 @@
 
 #include "01_Core_14_CoreEnums.mqh"
 #include "01_Core_07_CommonStructures.mqh"
+#include "01_Core_03_Logger.mqh"              // for CLogger
+#include "01_Core_18_IndicatorManager.mqh"    // for CIndicatorManager
 
 //+------------------------------------------------------------------+
 //| FORWARD DECLARATIONS                                             |
@@ -180,17 +182,28 @@ bool IsDailyLowLiquidity(double price)
 //+------------------------------------------------------------------+
 bool GetEMAValues(double &ema34, double &ema89, double &ema200, int shift = 0)
 {
-    // Placeholder implementation for EMA values
-    ema34 = iMA(_Symbol, PERIOD_CURRENT, 34, 0, MODE_EMA, PRICE_CLOSE);
-    ema89 = iMA(_Symbol, PERIOD_CURRENT, 89, 0, MODE_EMA, PRICE_CLOSE);
-    ema200 = iMA(_Symbol, PERIOD_CURRENT, 200, 0, MODE_EMA, PRICE_CLOSE);
+    CUnifiedIndicatorManager* mgr = CUnifiedIndicatorManager::GetInstance();
+    if(mgr == NULL){ ema34=ema89=ema200=0.0; return false; }
+    int h34 = mgr.GetEMAHandle(_Symbol, PERIOD_CURRENT, 34, PRICE_CLOSE);
+    int h89 = mgr.GetEMAHandle(_Symbol, PERIOD_CURRENT, 89, PRICE_CLOSE);
+    int h200= mgr.GetEMAHandle(_Symbol, PERIOD_CURRENT, 200, PRICE_CLOSE);
+    if(h34==INVALID_HANDLE || h89==INVALID_HANDLE || h200==INVALID_HANDLE){ ema34=ema89=ema200=0.0; return false; }
+    double b34[1], b89[1], b200[1];
+    bool ok = (CopyBuffer(h34,0,shift,1,b34)==1 && CopyBuffer(h89,0,shift,1,b89)==1 && CopyBuffer(h200,0,shift,1,b200)==1);
+    if(!ok){ ema34=ema89=ema200=0.0; return false; }
+    ema34=b34[0]; ema89=b89[0]; ema200=b200[0];
     return true;
 }
 
 bool GetATRValue(double &atrValue, int period = 14, int shift = 0)
 {
-    // Placeholder implementation for ATR value
-    atrValue = iATR(_Symbol, PERIOD_CURRENT, period);
+    CUnifiedIndicatorManager* mgr = CUnifiedIndicatorManager::GetInstance();
+    if(mgr == NULL){ atrValue=0.0; return false; }
+    int h = mgr.GetATRHandle(_Symbol, PERIOD_CURRENT, period);
+    if(h==INVALID_HANDLE){ atrValue=0.0; return false; }
+    double buf[1];
+    if(CopyBuffer(h,0,shift,1,buf)!=1){ atrValue=0.0; return false; }
+    atrValue = buf[0];
     return true;
 }
 

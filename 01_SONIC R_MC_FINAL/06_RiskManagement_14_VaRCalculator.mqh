@@ -10,6 +10,20 @@
 #include "01_Core_08_ContextManager.mqh"
 
 //+------------------------------------------------------------------+
+//| Local helper: stringify VAR method                               |
+//+------------------------------------------------------------------+
+string VarMethodToStringLocal(ENUM_VAR_METHOD method)
+{
+	switch(method)
+	{
+		case VAR_HISTORICAL:   return "Historical";
+		case VAR_PARAMETRIC:   return "Parametric";
+		case VAR_MONTE_CARLO:  return "Monte Carlo";
+		default:               return "Unknown";
+	}
+}
+
+//+------------------------------------------------------------------+
 //| VaR Calculation Methods                                          |
 //+------------------------------------------------------------------+
 // ENUM_VAR_METHOD moved to SonicEnums.mqh for proper include order
@@ -465,7 +479,7 @@ string GetVaRReport()
 double equity = AccountInfoDouble(ACCOUNT_EQUITY);
 
 string report = "=== VaR/CVaR REPORT ===\n";
-report += StringFormat("Method: %s\n", VaRMethodToString(m_method));
+report += StringFormat("Method: %s\n", VarMethodToStringLocal(m_method));
 report += StringFormat("Confidence Level: %.0f%%\n", m_confidenceLevel * 100);
 report += StringFormat("Data Points: %d\n\n", m_dataCount);
 
@@ -511,6 +525,12 @@ return NormalizeDouble(baseSize * reductionFactor, 2);
 return baseSize;
 }
 };
+
+//+------------------------------------------------------------------+
+//| GLOBAL VARIABLES DEFINITIONS                                     |
+//+------------------------------------------------------------------+
+// Define global variables that are declared as extern in other files
+CVaRCalculator* g_VaRCalculator = NULL;
 
 #endif // RISK_VAR_CALCULATOR_MQH
 

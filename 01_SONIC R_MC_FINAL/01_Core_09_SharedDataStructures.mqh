@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|             01_Core_09_SharedDataStructures.mqh                  |
 //|                SONIC R MC - Shared Data Structures               |
-//|                     Ð?i Bàng Architecture - Context Layer        |
+//|                     ï¿½?i Bï¿½ng Architecture - Context Layer        |
 //+------------------------------------------------------------------+
 #ifndef CORE_09_SHARED_DATA_STRUCTURES_MQH
 #define CORE_09_SHARED_DATA_STRUCTURES_MQH
@@ -149,7 +149,14 @@ public:
 //+------------------------------------------------------------------+
 //| GLOBAL CONTEXT INSTANCE                                          |
 //+------------------------------------------------------------------+
-// Global context instance (declared but not defined here)
-extern CEaContext g_Context;
+// Wave result primitives stash for cross-layer use (no heavy types)
+bool   g_haveLastWavePivots = false;
+double g_lastWaveLeg2Price  = 0.0;
+int    g_lastWaveDir        = 0; // ENUM_SIGNAL_TYPE as int
+datetime g_lastWaveBarTime   = 0;
+
+
+// Global context instance (defined here)
+CEaContext g_Context;
 
 #endif // CORE_09_SHARED_DATA_STRUCTURES_MQH
