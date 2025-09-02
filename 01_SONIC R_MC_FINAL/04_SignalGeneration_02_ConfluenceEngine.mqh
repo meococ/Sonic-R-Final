@@ -16,13 +16,9 @@
 // Only include heavy ConsolidatedAnalysis when BOTH flags are explicitly enabled (use nested guards for MQL5)
 #ifdef ENABLE_SMC_ANALYSIS_FILES
   #ifdef FEATURE_MASTER_ORCHESTRATOR
-    #if FEATURE_MASTER_ORCHESTRATOR==1
       #include "03_MarketAnalysis_09_ConsolidatedAnalysis.mqh"
-    #else
-      class CAnalysisConsolidated;
-    #endif
   #else
-    class CAnalysisConsolidated;
+      class CAnalysisConsolidated;
   #endif
 #else
   // Forward declare to allow pointer usage without full type in lightweight build

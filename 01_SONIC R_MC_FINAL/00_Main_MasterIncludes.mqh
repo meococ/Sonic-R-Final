@@ -286,7 +286,6 @@
 		// #include "03_MarketAnalysis_23_AdaptiveSettings.mqh"
 		// #include "03_MarketAnalysis_24_NarrativeGenerator.mqh"
 		#endif
-#endif
 #ifdef BUILD_PROFILE_ORCH
   // Early-phase: cố định dùng AssetDNA stub (21) cho cả ORCH và SMC để ổn định hiệu năng
   #include "03_MarketAnalysis_21_AssetDNA.mqh"
